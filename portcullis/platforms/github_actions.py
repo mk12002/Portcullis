@@ -184,6 +184,7 @@ class GitHubActionsPlatform(Platform):
                     key_path=f"{job.key_path}.uses",
                     uses=_parse_uses(node["uses"], uses_line),
                     with_=as_str_dict(node.get("with")),
+                    secrets=node.get("secrets"),
                 )
             )
             return job
@@ -246,6 +247,28 @@ def is_pr_head_checkout(step: Step) -> bool:
         if re.search(r"refs/pull/[^ ]*/(head|merge)", step.run):
             return True
     return False
+
+
+ARTIFACT_DOWNLOAD_ACTIONS = {
+    "actions/download-artifact",
+    "dawidd6/action-download-artifact",
+}
+
+
+def is_artifact_download(step: Step) -> bool:
+    """Does this step pull artifacts produced by another (possibly untrusted) run?"""
+    if step.uses and step.uses.name in ARTIFACT_DOWNLOAD_ACTIONS:
+        return True
+    return bool(step.run and re.search(r"\bgh\s+run\s+download\b", step.run))
+
+
+def persists_credentials(step: Step) -> bool:
+    """actions/checkout persists the repo token into .git config unless
+    persist-credentials is explicitly false."""
+    if not (step.uses and step.uses.name == "actions/checkout"):
+        return False
+    value = step.with_.get("persist-credentials")
+    return not (value is False or str(value).strip().lower() == "false")
 
 
 def is_self_hosted(job: Job) -> bool:

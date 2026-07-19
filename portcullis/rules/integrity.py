@@ -26,8 +26,8 @@ RULES = [
         name="Step integrity",
         summary=(
             "curl|bash-style install patterns, tool downloads without "
-            "checksum verification, and remote content piped into "
-            "interpreters."
+            "checksum verification, remote content piped into interpreters, "
+            "and opting back into deprecated insecure workflow commands."
         ),
         fp_note=(
             "Legitimate setup scripts use these patterns constantly; the "
@@ -45,8 +45,57 @@ CHECKSUM_RE = re.compile(
 )
 
 
+UNSECURE_COMMANDS_KEY = "ACTIONS_ALLOW_UNSECURE_COMMANDS"
+
+
+def _truthy(value: object) -> bool:
+    return str(value).strip().lower() in ("true", "1", "yes")
+
+
 def check(pipeline: Pipeline, config: ScanConfig) -> list[Finding]:
     findings: list[Finding] = []
+    any_reachable = any(j.reachable_from_untrusted for j in pipeline.jobs)
+    env_scopes: list[tuple[dict, str, int, str | None, str | None, bool]] = [
+        (pipeline.env, "env", 1, None, None, any_reachable)
+    ]
+    for job in pipeline.jobs:
+        env_scopes.append(
+            (job.env, f"{job.key_path}.env", job.line, job.name, None,
+             job.reachable_from_untrusted)
+        )
+        for step in job.steps:
+            env_scopes.append(
+                (step.env, f"{step.key_path}.env", step.line, job.name, step.name,
+                 job.reachable_from_untrusted)
+            )
+    for env, key_path, line, job_name, step_name, reachable in env_scopes:
+        if UNSECURE_COMMANDS_KEY in env and _truthy(env[UNSECURE_COMMANDS_KEY]):
+            findings.append(
+                Finding(
+                    rule_id="R6",
+                    kind="unsecure-commands",
+                    message=(
+                        f"{UNSECURE_COMMANDS_KEY} is enabled — it re-activates the "
+                        "deprecated set-env/add-path workflow commands, which let "
+                        "any step output rewrite the environment and PATH of later "
+                        "steps."
+                    ),
+                    remediation=(
+                        f"Remove {UNSECURE_COMMANDS_KEY}; use the $GITHUB_ENV / "
+                        "$GITHUB_PATH files with validated, trusted values instead."
+                    ),
+                    file_path=pipeline.file_path,
+                    line=line,
+                    key_path=key_path,
+                    job_name=job_name,
+                    step_name=step_name,
+                    base_severity=Severity.MEDIUM,
+                    confidence=Confidence.HIGH,
+                    evidence=f"{UNSECURE_COMMANDS_KEY}: true",
+                    untrusted_reachable=reachable,
+                )
+            )
+
     for job in pipeline.jobs:
         for step in job.steps:
             if not step.run:

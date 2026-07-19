@@ -1,6 +1,6 @@
 """Portcullis CLI.
 
-    portcullis scan <path> [--format json|html|sarif|all] [--out DIR]
+    portcullis scan <path> [--format json|html|sarif|md|all] [--out DIR]
                            [--fail-on P0|P1|P2|P3] [--platforms LIST]
                            [--trusted-actions PREFIX]... [--quiet]
     portcullis rules list
@@ -36,9 +36,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_scan.add_argument("path", nargs="?", default=".", help="directory to scan (default: cwd)")
     p_scan.add_argument(
         "--format",
-        choices=["json", "html", "sarif", "all"],
+        choices=["json", "html", "sarif", "md", "all"],
         default="html",
-        help="report format (default: html)",
+        help="report format; md is a PR-comment-sized summary (default: html)",
     )
     p_scan.add_argument(
         "--out", default="./portcullis-report", help="output directory (default: ./portcullis-report)"
@@ -90,7 +90,7 @@ def cmd_scan(args: argparse.Namespace) -> int:
 
     out_dir = Path(args.out)
     out_dir.mkdir(parents=True, exist_ok=True)
-    formats = ["json", "html", "sarif"] if args.format == "all" else [args.format]
+    formats = ["json", "html", "sarif", "md"] if args.format == "all" else [args.format]
     written = []
     for fmt in formats:
         path = out_dir / f"report.{fmt}"

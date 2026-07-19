@@ -25,8 +25,8 @@ RULES = [
         name="Token permissions",
         summary=(
             "Missing explicit permissions block (broad default on many "
-            "setups), write-all grants, and over-broad write scopes on the "
-            "job token."
+            "setups), write-all grants, over-broad write scopes on the job "
+            "token, and blanket secrets: inherit into reusable workflows."
         ),
         fp_note=(
             "Some jobs legitimately need contents:write (release automation). "
@@ -126,6 +126,35 @@ def check(pipeline: Pipeline, config: ScanConfig) -> list[Finding]:
                     untrusted_reachable=job.reachable_from_untrusted,
                 )
             )
+    for job in pipeline.jobs:
+        for step in job.steps:
+            if step.uses and isinstance(step.secrets, str) and step.secrets.strip() == "inherit":
+                findings.append(
+                    Finding(
+                        rule_id="R4",
+                        kind="secrets-inherit",
+                        message=(
+                            f"Job '{job.name}' forwards every repository secret to "
+                            f"the reusable workflow '{step.uses.raw}' via "
+                            "secrets: inherit — the called workflow (and anything "
+                            "it is compromised by) receives all of them."
+                        ),
+                        remediation=(
+                            "Pass only the specific secrets the called workflow "
+                            "needs as an explicit secrets: mapping."
+                        ),
+                        file_path=pipeline.file_path,
+                        line=step.line,
+                        key_path=f"{job.key_path}.secrets",
+                        job_name=job.name,
+                        step_name=step.name,
+                        base_severity=Severity.MEDIUM,
+                        confidence=Confidence.MEDIUM,
+                        evidence=f"secrets: inherit → {step.uses.raw}",
+                        untrusted_reachable=job.reachable_from_untrusted,
+                    )
+                )
+
     top_scopes = _write_scopes(pipeline.permissions)
     if len(top_scopes) >= 3:
         findings.append(

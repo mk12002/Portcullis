@@ -185,10 +185,15 @@ def emit_html(report: Report) -> str:
             + f"<p class=\"rem\"><b>Remediation:</b> {_esc(f.remediation)}</p></div>"
         )
 
-    if report.skipped:
-        parts.append("<h2>Warnings &amp; skipped files</h2><ul>")
+    if report.skipped or report.suppressed:
+        parts.append("<h2>Warnings &amp; notes</h2><ul>")
         for entry in report.skipped:
             parts.append(f"<li><code>{_esc(entry['file'])}</code> — {_esc(entry['reason'])}</li>")
+        for sup in report.suppressed:
+            parts.append(
+                f"<li>suppressed by inline comment: {_esc(sup['rule_id'])} "
+                f"({_esc(sup['kind'])}) at <code>{_esc(sup['file'])}:{sup['line']}</code></li>"
+            )
         parts.append("</ul>")
 
     parts.append(

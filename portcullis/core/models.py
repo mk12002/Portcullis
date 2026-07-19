@@ -118,6 +118,9 @@ class Step:
     env: dict[str, Any] = field(default_factory=dict)
     with_: dict[str, Any] = field(default_factory=dict)
     shell: str | None = None  # e.g. "bash", "groovy-double", "groovy-single"
+    # For reusable-workflow call pseudo-steps: the job-level `secrets:` value
+    # ("inherit", a mapping, or None).
+    secrets: Any = None
 
     def run_lines(self) -> list[tuple[int, str]]:
         """(approximate file line, text) for each line of the run script."""
@@ -265,6 +268,8 @@ class Report:
     score: int
     score_formula: str
     priority_counts: dict[str, int]
+    # Findings dropped by inline `# portcullis: ignore[...]` comments.
+    suppressed: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -280,6 +285,8 @@ class Report:
                 "priority_counts": self.priority_counts,
                 "findings_total": len(self.findings),
                 "files_total": len(self.files_scanned),
+                "suppressed_total": len(self.suppressed),
             },
             "findings": [f.to_dict() for f in self.findings],
+            "suppressed": self.suppressed,
         }

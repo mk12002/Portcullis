@@ -1,99 +1,147 @@
-# Portcullis
+<div align="center">
 
-**Static security analyzer for CI/CD pipeline definitions — GitHub Actions, GitLab CI, and Jenkins.**
+# 🏰 Portcullis
 
-CI/CD pipelines hold repository secrets, carry write-capable tokens, and routinely execute code from untrusted pull requests. A single misconfiguration — a `pull_request_target` job that checks out PR code, a PR title interpolated into a shell line, a third-party action on a mutable tag — turns that combination into full repository compromise. Portcullis statically detects those misconfigurations before they ship, and scores them by *context*: the same flaw is far more dangerous where attacker-controlled input can reach it.
+**Static security analyzer for CI/CD pipeline definitions — GitHub Actions · GitLab CI · Jenkins**
 
-- **Purely static and fully offline.** Pipeline files are parsed, never executed. No network access at scan time.
-- **Three platforms, one rule set.** Every parser normalizes to a shared pipeline model, so rules are written once.
-- **Three outputs.** Canonical JSON, a self-contained HTML report (no CDN), and SARIF 2.1.0 for code scanning.
-- **A real merge gate.** `--fail-on P0..P3` exit codes for CI.
+*The gate your pipelines pass through before they can hurt you.*
 
-## Install
+[![python](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](pyproject.toml)
+[![license](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
+[![sarif](https://img.shields.io/badge/output-JSON%20·%20HTML%20·%20SARIF%20·%20MD-4f8cc9)](#outputs)
+[![offline](https://img.shields.io/badge/scan-100%25%20offline-46a758)](THREAT_MODEL.md)
 
-```bash
-pip install -e .            # from a checkout
-pip install -e ".[dev]"     # with dev tooling (pytest, ruff, mypy)
-```
+</div>
 
-Requires Python 3.11+. The single runtime dependency is `ruamel.yaml`, chosen because its round-trip loader preserves line numbers — every Portcullis finding must be traceable to a real `file:line`, which PyYAML cannot provide.
+---
+
+CI/CD pipelines hold **repository secrets**, carry **write-capable tokens**, and routinely **execute code from untrusted pull requests**. One misconfiguration — a `pull_request_target` job that checks out PR code, a PR title interpolated into a shell line, a third-party action on a mutable tag — turns that combination into full repository compromise.
+
+Portcullis detects those misconfigurations statically, and — unlike a linter — scores them by **context**: the same flaw is one severity level more dangerous wherever attacker-controlled input can reach it.
+
+![Portcullis architecture](docs/images/architecture.svg)
+
+## Why another scanner?
+
+Excellent tools exist ([zizmor](https://docs.zizmor.sh/), [poutine](https://github.com/boostsecurityio/poutine), [actionlint](https://github.com/rhysd/actionlint), the [ARGUS](https://www.usenix.org/conference/usenixsecurity23/presentation/muralee) research) — and a [2026 comparative study](https://arxiv.org/html/2601.14455v2) of nine of them found *no single scanner covers all weakness categories*. Portcullis's angle, in full honesty against that landscape ([detailed comparison](docs/COMPARISON.md)):
+
+| | The usual approach | Portcullis |
+|---|---|---|
+| **Platforms** | per-platform tools (zizmor/actionlint: GitHub-only) | GitHub + GitLab + Jenkins through **one normalized model** — every rule runs on all three |
+| **Ranking** | per-rule severities | **trigger-context escalation**: `curl\|bash` on `push` = P2 hygiene; the same step reachable from `pull_request_target` escalates toward P0 |
+| **Noise control** | tuning & personas | architecture: confidence is first-class, LOW confidence hard-caps at P3 (surface, don't block), hygiene findings can't corroborate into P0, Jenkins findings honestly capped at MEDIUM |
+| **Output** | annotations / JSON | deterministic JSON + self-contained HTML + SARIF 2.1.0 + PR-comment Markdown, with a documented 0–100 score |
 
 ## Quickstart
 
 ```bash
-# scan the current repository, write an HTML report to ./portcullis-report/
-portcullis scan .
+pip install -e .          # Python 3.11+; single runtime dep: ruamel.yaml (line-number-preserving parser)
 
-# all three formats, gate the merge on P0 findings
-portcullis scan . --format all --out ./portcullis-report --fail-on P0
-
-# see every rule with its false-positive notes
-portcullis rules list
+portcullis scan .                                  # HTML report → ./portcullis-report/
+portcullis scan . --format all --fail-on P0        # all formats + CI merge gate
+portcullis rules list                              # rule catalog with false-positive notes
 ```
 
-Try it on the bundled inert fixtures:
+Try it immediately on the bundled (inert) vulnerable fixtures:
 
 ```bash
 portcullis scan tests/fixtures/github --format all --out ./demo-report
 ```
 
-Expected console output:
+![Terminal output](docs/images/terminal.svg)
 
+## What a report looks like
+
+![Report preview](docs/images/report-preview.svg)
+
+A committed sample generated from the fixtures lives in [docs/sample-report/](docs/sample-report/) — open [`report.html`](docs/sample-report/report.html) locally (fully self-contained, no CDN, works offline) or read the [Markdown flavor](docs/sample-report/report.md).
+
+The key demonstration in that sample: **the identical injection pattern is CRITICAL/P0 under `pull_request_target` and HIGH/P1 under `push`** — context escalation working, marked with `↑` in every output.
+
+## Detection rules
+
+| Rule | Checks | Detects |
+|---|---|---|
+| **R1** Dangerous triggers | `pwn-request` · `dangerous-trigger` · `artifact-poisoning` · `credential-persistence` · `self-hosted-pr` · `mr-untrusted-context` · `pr-context-credentials` | Privileged workflows processing attacker-controllable input: PR-head checkout under `pull_request_target`/`workflow_run`, artifact downloads from untrusted runs, checkout token persistence, self-hosted runners on PRs |
+| **R2** Expression injection | `expression-injection` · `env-injection` · `script-injection` · `variable-injection` · `groovy-interpolation` | Untrusted context (PR/issue titles & bodies, comments, refs, MR variables, `CHANGE_*`) landing in shell lines, `$GITHUB_ENV`/`$GITHUB_PATH` writes, `github-script` bodies, double-quoted Groovy `sh` |
+| **R3** Pinning | `unpinned-third-party` · `unpinned-first-party` · `image-mutable-latest` · `image-pinned-tag` | Actions on mutable tags/branches instead of commit SHAs; images on `latest`/tags instead of digests |
+| **R4** Token permissions | `missing-permissions` · `write-all` · `broad-write` · `secrets-inherit` | Broad-default or `write-all` tokens; blanket secret forwarding into reusable workflows |
+| **R5** Secret exposure | `secret-echoed` · `secret-cli-arg` · `secret-untrusted-context` · `plaintext-secret` | Secrets in logs/argv, secrets reachable from untrusted triggers, hardcoded credential-shaped values (**always redacted in output**) |
+| **R6** Step integrity | `curl-pipe-shell` · `unverified-download` · `unsecure-commands` | Unauthenticated remote code entering the pipeline; deprecated insecure-commands opt-in |
+
+Every finding carries: `file:line` + YAML key path, evidence snippet, severity (with escalation marker), **confidence (HIGH/MEDIUM/LOW)**, priority P0–P3, and a concrete remediation.
+
+## The risk model (30 seconds)
+
+1. **Escalation first**: any finding inside a job reachable from an untrusted trigger gets +1 severity (R1 exempt — its severity already encodes the trigger).
+2. **Severity → priority**: CRITICAL→P0, HIGH→P1, MEDIUM→P2, LOW→P3.
+3. **LOW confidence caps at P3** — surface, never block.
+4. **Corroboration**: two distinct rules at MEDIUM+/MEDIUM+ on one job bump each other one level (hygiene findings excluded).
+5. **Score** = `max(0, 100 − 30·P0 − 15·P1 − 5·P2 − 1·P3)` — printed on every report.
+
+The full (rule-combination → priority) truth table is executable: [`tests/test_risk.py`](tests/test_risk.py).
+
+## Suppressing a finding you've reviewed
+
+```yaml
+- uses: example-org/tool@v3   # portcullis: ignore[R3]  — vendored fork, reviewed 2026-07
 ```
-portcullis v0.1.0 — scanned 2 pipeline file(s)
-score: 0/100 · P0:6 P1:4 P2:0 P3:0
-top finding: [P0/CRITICAL] R1 pwn-request at .github/workflows/vulnerable.yml:21
-```
 
-## Reading a report
+`# portcullis: ignore` (all rules) or `# portcullis: ignore[R2,R5]`, as a trailing comment or on the line above (`//` in Jenkinsfiles). Suppressions are never silent: every output format reports what was suppressed and where.
 
-The HTML report opens with the **pipeline security score** (0–100, formula printed beside it: `max(0, 100 - 30·|P0| - 15·|P1| - 5·|P2| - 1·|P3|)`), priority counts, and the headline finding. Each finding row shows:
-
-- **Priority P0–P3** — deterministic function of severity, confidence, untrusted-reachability, and corroborating rules on the same job.
-- **Severity with ↑ marker** — findings inside a job reachable from an untrusted trigger (e.g. `pull_request_target`) are escalated one level. This is the core idea: a `curl | bash` on a push trigger is hygiene; the same step where attacker-controlled input reaches it is an incident waiting to happen.
-- **Confidence HIGH/MEDIUM/LOW** — honest uncertainty. Static YAML analysis cannot always prove reachability; LOW-confidence findings are surfaced at P3 and never block a merge.
-- **Evidence at `file:line`** plus a YAML key path, and a concrete remediation (e.g. *route `github.event.issue.title` through `env:` and reference `"$TITLE"` in the script*).
-
-## The rules
-
-| Rule | Detects |
-|---|---|
-| R1 | Dangerous triggers: pwn-request pattern (`pull_request_target`/`workflow_run` + PR-head checkout), self-hosted runners on PR events, MR pipelines touching credentials |
-| R2 | Expression injection: untrusted context (PR/issue titles & bodies, comments, refs, `CHANGE_*`, MR variables) interpolated directly into shell/script lines |
-| R3 | Pinning: third-party actions on mutable tags/branches instead of commit SHAs; container images on `latest`/tags instead of digests |
-| R4 | Token permissions: missing `permissions:` block, `write-all`, over-broad write scopes |
-| R5 | Secret exposure: secrets reachable from untrusted triggers, echoed to logs, passed as argv, or hardcoded in plaintext (always redacted in output) |
-| R6 | Step integrity: `curl \| bash` installs, downloads without checksum verification |
-
-`portcullis rules list` prints the full catalog including per-rule false-positive notes.
-
-## Using Portcullis as a CI gate
+## As a CI gate
 
 ```yaml
 - name: pipeline security gate
   run: |
-    pip install portcullis-scanner
+    pip install "portcullis-scanner @ git+https://github.com/<you>/portcullis"  # or pip install -e . in-repo
     portcullis scan . --format sarif --out ./portcullis-report --fail-on P0
 ```
 
-Portcullis's own CI does exactly this — and its own workflow is SHA-pinned and least-privilege, so it passes its own scan (see `.github/workflows/ci.yml` and `tests/test_dogfood.py`).
+Exit codes: `0` clean/below threshold · `1` gate tripped · `2` usage error. Portcullis's own CI runs this dogfood — and its own workflow is SHA-pinned, least-privilege, and `persist-credentials: false`, so **Portcullis passes its own scan at 100/100** (enforced by [`tests/test_dogfood.py`](tests/test_dogfood.py)).
 
-## Extending
+## CLI reference
 
-Adding a platform means implementing `platforms.base.Platform` (two methods: `matches`, `parse`) and emitting the normalized `Pipeline` model; every existing rule then applies automatically. Adding a rule means one function over that model. See [CONTRIBUTING.md](CONTRIBUTING.md).
+```text
+portcullis scan <path>
+    --format {json,html,sarif,md,all}   default: html
+    --out DIR                           default: ./portcullis-report
+    --fail-on {P0,P1,P2,P3}             exit 1 if findings at/above threshold
+    --platforms LIST                    subset of github,gitlab,jenkins
+    --trusted-actions PREFIX            repeatable; treat prefix as first-party
+    --quiet
+portcullis rules list
+portcullis version
+```
 
-## Limitations (read this)
+## Project layout
 
-- **Reachability is approximate.** Static analysis of YAML cannot always prove that untrusted input reaches a sink at runtime. Confidence levels mark that honestly; treat MEDIUM/LOW-confidence findings as leads, not verdicts.
-- **Reusable/called workflows are followed shallowly.** The `uses:` reference is analyzed (pinning, party); the called workflow's own content is not fetched or parsed.
-- **Jenkinsfile parsing is best-effort.** Groovy cannot be parsed faithfully without evaluating it, which Portcullis will never do. Jenkins findings are structural and capped at MEDIUM confidence.
-- **High-entropy secret detection has false positives** (hashes, opaque IDs). Such findings carry LOW confidence, and detected values are redacted in every output format.
-- **A clean scan is evidence, not proof.** Portcullis checks known misconfiguration patterns; it does not certify a pipeline as secure.
-- `.gitignore` handling is a pragmatic subset (no negation patterns).
+```text
+portcullis/
+  core/        models (normalized Pipeline), risk, taint, engine
+  platforms/   github_actions, gitlab_ci, jenkins → one shared model
+  rules/       R1–R6, written once against the model
+  emitters/    json, html (self-contained), sarif, markdown
+tests/
+  fixtures/    inert-but-vulnerable + clean pipelines per platform
+  test_*.py    truth table, taint, determinism, emitters, CLI, inertness guard
+docs/
+  COMPARISON.md, sample-report/, images/, spec/
+```
+
+## Guarantees & limitations
+
+**Guarantees** (see [THREAT_MODEL.md](THREAT_MODEL.md)): never executes pipeline content · no network at scan time · malformed input degrades to a LOW finding, never a crash · detected secrets redacted in every format · byte-deterministic output.
+
+**Limitations** (read before trusting a clean scan): static reachability is approximate — confidence marks that honestly · reusable workflows are followed shallowly · Jenkins/Groovy parsing is best-effort, capped at MEDIUM confidence · high-entropy secret detection has false positives (LOW confidence) · `.gitignore` support is a pragmatic subset · **a clean scan is evidence, not proof**.
 
 ## Test fixtures are inert by law
 
-The repository ships deliberately vulnerable pipeline fixtures for testing. They are **inert-but-vulnerable**: genuinely misconfigured (real injection sinks, real pwn-request triggers) but with harmless `echo` payloads, `example.com` URLs, and obviously fake secret-shaped strings. An automated inertness guard (`tests/test_inertness.py`) enforces this on every run. See [THREAT_MODEL.md](THREAT_MODEL.md).
+The repo ships deliberately vulnerable fixtures: genuinely misconfigured (real injection sinks, real pwn-request triggers) with harmless `echo` payloads, `example.com` URLs, and fake-marked secret strings. An automated guard ([`tests/test_inertness.py`](tests/test_inertness.py)) enforces this on every run.
+
+## Contributing · Docs
+
+[CONTRIBUTING.md](CONTRIBUTING.md) — add a platform (a parser) or a rule (one function) · [docs/COMPARISON.md](docs/COMPARISON.md) — landscape & prior art · [VISION.md](VISION.md) — non-goals & roadmap · [CHANGELOG.md](CHANGELOG.md) · original build spec under [docs/spec/](docs/spec/).
 
 ## License
 

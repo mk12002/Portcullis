@@ -34,7 +34,7 @@ def test_scan_all_formats_written(tmp_path, capsys):
         ["scan", str(FIXTURES / "github"), "--format", "all", "--out", str(tmp_path)], capsys
     )
     assert code == 0  # no --fail-on: report only
-    for ext in ("json", "html", "sarif"):
+    for ext in ("json", "html", "sarif", "md"):
         assert (tmp_path / f"report.{ext}").is_file()
     assert "score:" in out
     assert "[P0/" in out  # P0 must not fall through truthiness checks
@@ -128,7 +128,7 @@ def test_no_command_prints_help(capsys):
     assert "usage" in out.lower()
 
 
-@pytest.mark.parametrize("fmt", ["json", "html", "sarif"])
+@pytest.mark.parametrize("fmt", ["json", "html", "sarif", "md"])
 def test_single_format_writes_only_that_file(fmt, tmp_path, capsys):
     code, _, _ = run(
         ["scan", str(FIXTURES / "clean"), "--format", fmt, "--out", str(tmp_path),

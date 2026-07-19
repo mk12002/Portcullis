@@ -9,6 +9,8 @@ quoted shell variable — is never flagged and is the recommended remediation.
 
 from __future__ import annotations
 
+import re
+
 from portcullis.core import taint
 from portcullis.core.models import (
     Confidence,
@@ -58,18 +60,32 @@ def check(pipeline: Pipeline, config: ScanConfig) -> list[Finding]:
     return findings
 
 
+RUNNER_FILE_SINK_RE = re.compile(r"GITHUB_(ENV|OUTPUT|PATH)")
+
+
 def _github_step(pipeline: Pipeline, job_name: str, step: Step, job) -> list[Finding]:
     findings = []
     for hit in taint.github_run_sinks(step):
+        env_sink = RUNNER_FILE_SINK_RE.search(hit.snippet)
         findings.append(
             Finding(
                 rule_id="R2",
-                kind="expression-injection",
+                kind="env-injection" if env_sink else "expression-injection",
                 message=(
-                    f"Untrusted context '{hit.source}' is interpolated directly "
-                    f"into a run script in job '{job_name}'. Its value is expanded "
-                    "before the shell parses the line, so crafted input becomes "
-                    "part of the command."
+                    (
+                        f"Untrusted context '{hit.source}' is written to "
+                        f"$GITHUB_{env_sink.group(1)} in job '{job_name}'. Crafted "
+                        "multi-line input can define arbitrary environment "
+                        "variables or PATH entries for every later step "
+                        "(runner-file injection)."
+                    )
+                    if env_sink
+                    else (
+                        f"Untrusted context '{hit.source}' is interpolated directly "
+                        f"into a run script in job '{job_name}'. Its value is expanded "
+                        "before the shell parses the line, so crafted input becomes "
+                        "part of the command."
+                    )
                 ),
                 remediation=GITHUB_REMEDIATION,
                 file_path=pipeline.file_path,

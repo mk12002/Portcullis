@@ -6,7 +6,7 @@ import json
 
 from conftest import scan_fixture
 
-from portcullis.emitters import emit_html, emit_json, emit_sarif
+from portcullis.emitters import emit_html, emit_json, emit_markdown, emit_sarif
 
 FAKE_SECRET_VALUE = "Fake9qWz3xVr7pLm2kJn8tBs4dCg6hYu"
 
@@ -62,8 +62,19 @@ def test_p0_renders_as_p0_not_falsy_fallback():
 
 def test_secret_value_redacted_in_all_formats():
     report = scan_fixture("gitlab")
-    for emit in (emit_json, emit_html, emit_sarif):
+    for emit in (emit_json, emit_html, emit_sarif, emit_markdown):
         assert FAKE_SECRET_VALUE not in emit(report)
+
+
+def test_markdown_deterministic_and_pr_sized():
+    a = emit_markdown(scan_fixture("github"))
+    b = emit_markdown(scan_fixture("github"))
+    assert a == b
+    assert a.startswith("## 🛡️ Portcullis")
+    assert "| Priority |" in a and "**P0**" in a
+    assert "Remediations" in a
+    clean = emit_markdown(scan_fixture("clean"))
+    assert "No findings" in clean
 
 
 def test_clean_fixture_scores_100_no_findings():

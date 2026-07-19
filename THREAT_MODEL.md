@@ -27,9 +27,13 @@ scanned repository may be attacker-controlled.
    credential-shaped value, the value never appears in any output format —
    evidence strings carry only length and entropy metadata. Redaction is
    explicitly tested against all three emitters.
-5. **Deterministic output.** Same input tree → byte-identical JSON/HTML/SARIF
-   (the single top-level timestamp excepted), so reports are diffable and a
-   tampered rerun is detectable.
+5. **Deterministic output.** Same input tree → byte-identical
+   JSON/HTML/SARIF/Markdown (the single top-level timestamp excepted), so
+   reports are diffable and a tampered rerun is detectable.
+6. **Suppressions are never silent.** Inline `portcullis: ignore` comments
+   drop a finding from the findings list but are themselves reported (file,
+   line, rule) in every output format — an attacker quietly suppressing a
+   finding leaves a visible trace.
 
 ## Residual risks
 

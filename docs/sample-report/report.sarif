@@ -1,0 +1,502 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "columnKind": "utf16CodeUnits",
+      "results": [
+        {
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "kind": "member",
+                  "name": "triage"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/vulnerable.yml"
+                },
+                "region": {
+                  "startLine": 21
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "[CRITICAL/HIGH confidence] Job 'triage' runs on pull_request_target (secrets and a privileged token available) and checks out PR-head code — attacker-controlled code executes in a privileged context (pwn-request pattern). Remediation: Split the workflow: handle untrusted PR code under the unprivileged pull_request event, and keep pull_request_target jobs from checking out PR-head refs. If PR code must be processed, do it without secrets and with permissions: read-all or less."
+          },
+          "partialFingerprints": {
+            "portcullisFinding": "R1:pwn-request:.github/workflows/vulnerable.yml:21"
+          },
+          "properties": {
+            "confidence": "HIGH",
+            "escalated": true,
+            "kind": "pwn-request",
+            "priority": "P0",
+            "untrusted_reachable": true
+          },
+          "ruleId": "R1",
+          "ruleIndex": 1
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "kind": "member",
+                  "name": "triage"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/vulnerable.yml"
+                },
+                "region": {
+                  "startLine": 25
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "[CRITICAL/HIGH confidence] Untrusted context 'github.event.pull_request.title' is interpolated directly into a run script in job 'triage'. Its value is expanded before the shell parses the line, so crafted input becomes part of the command. Remediation: Route the value through env: and reference it as a quoted shell variable, e.g. env: TITLE: ${{ <expr> }} then run: echo \"$TITLE\". The shell then receives the value as data, never as command text."
+          },
+          "partialFingerprints": {
+            "portcullisFinding": "R2:expression-injection:.github/workflows/vulnerable.yml:25"
+          },
+          "properties": {
+            "confidence": "HIGH",
+            "escalated": true,
+            "kind": "expression-injection",
+            "priority": "P0",
+            "untrusted_reachable": true
+          },
+          "ruleId": "R2",
+          "ruleIndex": 2
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "kind": "member",
+                  "name": "triage"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/vulnerable.yml"
+                },
+                "region": {
+                  "startLine": 29
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "[CRITICAL/HIGH confidence] Third-party action 'example-org/super-linter' is pinned to a mutable reference (@v3). A compromised or retagged release changes what this pipeline executes. Remediation: Pin to a full commit SHA (uses: owner/action@<40-hex-sha> with a version comment) and update via a dependency bot; tags and branches are mutable."
+          },
+          "partialFingerprints": {
+            "portcullisFinding": "R3:unpinned-third-party:.github/workflows/vulnerable.yml:29"
+          },
+          "properties": {
+            "confidence": "HIGH",
+            "escalated": true,
+            "kind": "unpinned-third-party",
+            "priority": "P0",
+            "untrusted_reachable": true
+          },
+          "ruleId": "R3",
+          "ruleIndex": 3
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "kind": "member",
+                  "name": "triage"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/vulnerable.yml"
+                },
+                "region": {
+                  "startLine": 27
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "[CRITICAL/HIGH confidence] Secret(s) FIXTURE_FAKE_WEBHOOK_TOKEN are written to the job log by an echo/print in job 'triage'. Log masking is best-effort and fails on transformed values. Remediation: Never print secret expressions; pass secrets via env: to the consuming process and rely on masked, non-printed usage."
+          },
+          "partialFingerprints": {
+            "portcullisFinding": "R5:secret-echoed:.github/workflows/vulnerable.yml:27"
+          },
+          "properties": {
+            "confidence": "HIGH",
+            "escalated": true,
+            "kind": "secret-echoed",
+            "priority": "P0",
+            "untrusted_reachable": true
+          },
+          "ruleId": "R5",
+          "ruleIndex": 5
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "kind": "member",
+                  "name": "triage"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/vulnerable.yml"
+                },
+                "region": {
+                  "startLine": 27
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "[HIGH/MEDIUM confidence] Job 'triage' uses repository secrets while reachable from an untrusted trigger (workflow triggered by pull_request_target). Combined with attacker-influenced execution this is the secret-exfiltration setup. Remediation: Move secret-using work to a workflow that runs only on trusted events, or gate it behind environment protection rules with required review."
+          },
+          "partialFingerprints": {
+            "portcullisFinding": "R5:secret-untrusted-context:.github/workflows/vulnerable.yml:27"
+          },
+          "properties": {
+            "confidence": "MEDIUM",
+            "escalated": true,
+            "kind": "secret-untrusted-context",
+            "priority": "P0",
+            "untrusted_reachable": true
+          },
+          "ruleId": "R5",
+          "ruleIndex": 5
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "kind": "member",
+                  "name": "triage"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/vulnerable.yml"
+                },
+                "region": {
+                  "startLine": 31
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "[HIGH/HIGH confidence] Step 'install tool (unverified remote install; inert example domain)' pipes a remote download directly into an interpreter — the pipeline executes whatever the remote host serves, unverified. Remediation: Download to a file, verify a pinned checksum (sha256sum -c) or signature, then execute; or install from a pinned package."
+          },
+          "partialFingerprints": {
+            "portcullisFinding": "R6:curl-pipe-shell:.github/workflows/vulnerable.yml:31"
+          },
+          "properties": {
+            "confidence": "HIGH",
+            "escalated": true,
+            "kind": "curl-pipe-shell",
+            "priority": "P0",
+            "untrusted_reachable": true
+          },
+          "ruleId": "R6",
+          "ruleIndex": 6
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "kind": "member",
+                  "name": "build"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/push-injection.yml"
+                },
+                "region": {
+                  "startLine": 15
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "[HIGH/HIGH confidence] Untrusted context 'github.event.head_commit' is interpolated directly into a run script in job 'build'. Its value is expanded before the shell parses the line, so crafted input becomes part of the command. Remediation: Route the value through env: and reference it as a quoted shell variable, e.g. env: TITLE: ${{ <expr> }} then run: echo \"$TITLE\". The shell then receives the value as data, never as command text."
+          },
+          "partialFingerprints": {
+            "portcullisFinding": "R2:expression-injection:.github/workflows/push-injection.yml:15"
+          },
+          "properties": {
+            "confidence": "HIGH",
+            "escalated": false,
+            "kind": "expression-injection",
+            "priority": "P1",
+            "untrusted_reachable": false
+          },
+          "ruleId": "R2",
+          "ruleIndex": 2
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/vulnerable.yml"
+                },
+                "region": {
+                  "startLine": 15
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "[HIGH/HIGH confidence] permissions: write-all on workflow grants the token every scope (contents, packages, actions, id-token…) — far more than any single job needs. Remediation: Add an explicit least-privilege block, e.g. permissions: { contents: read } at the workflow top level, widening only the scopes a specific job needs."
+          },
+          "partialFingerprints": {
+            "portcullisFinding": "R4:write-all:.github/workflows/vulnerable.yml:15"
+          },
+          "properties": {
+            "confidence": "HIGH",
+            "escalated": true,
+            "kind": "write-all",
+            "priority": "P1",
+            "untrusted_reachable": true
+          },
+          "ruleId": "R4",
+          "ruleIndex": 4
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "kind": "member",
+                  "name": "matrix-build"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/vulnerable.yml"
+                },
+                "region": {
+                  "startLine": 39
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "[HIGH/HIGH confidence] First-party action 'actions/setup-python' is pinned to a mutable reference (@v5). A compromised or retagged release changes what this pipeline executes. Remediation: Pin to a full commit SHA (uses: owner/action@<40-hex-sha> with a version comment) and update via a dependency bot; tags and branches are mutable."
+          },
+          "partialFingerprints": {
+            "portcullisFinding": "R3:unpinned-first-party:.github/workflows/vulnerable.yml:39"
+          },
+          "properties": {
+            "confidence": "HIGH",
+            "escalated": true,
+            "kind": "unpinned-first-party",
+            "priority": "P1",
+            "untrusted_reachable": true
+          },
+          "ruleId": "R3",
+          "ruleIndex": 3
+        },
+        {
+          "level": "error",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "kind": "member",
+                  "name": "triage"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/vulnerable.yml"
+                },
+                "region": {
+                  "startLine": 21
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "[HIGH/HIGH confidence] First-party action 'actions/checkout' is pinned to a mutable reference (@v4). A compromised or retagged release changes what this pipeline executes. Remediation: Pin to a full commit SHA (uses: owner/action@<40-hex-sha> with a version comment) and update via a dependency bot; tags and branches are mutable."
+          },
+          "partialFingerprints": {
+            "portcullisFinding": "R3:unpinned-first-party:.github/workflows/vulnerable.yml:21"
+          },
+          "properties": {
+            "confidence": "HIGH",
+            "escalated": true,
+            "kind": "unpinned-first-party",
+            "priority": "P1",
+            "untrusted_reachable": true
+          },
+          "ruleId": "R3",
+          "ruleIndex": 3
+        },
+        {
+          "level": "note",
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "kind": "member",
+                  "name": "triage"
+                }
+              ],
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".github/workflows/vulnerable.yml"
+                },
+                "region": {
+                  "startLine": 21
+                }
+              }
+            }
+          ],
+          "message": {
+            "text": "[LOW/MEDIUM confidence] actions/checkout in job 'triage' persists the repository token into .git config (the default) in a workflow reachable from PR-driven events — later steps and checked-out tooling can read it from disk. Remediation: Add 'persist-credentials: false' to the checkout step unless a later step genuinely needs the persisted token."
+          },
+          "partialFingerprints": {
+            "portcullisFinding": "R1:credential-persistence:.github/workflows/vulnerable.yml:21"
+          },
+          "properties": {
+            "confidence": "MEDIUM",
+            "escalated": false,
+            "kind": "credential-persistence",
+            "priority": "P3",
+            "untrusted_reachable": true
+          },
+          "ruleId": "R1",
+          "ruleIndex": 1
+        }
+      ],
+      "tool": {
+        "driver": {
+          "informationUri": "https://github.com/portcullis-scanner/portcullis",
+          "name": "portcullis",
+          "rules": [
+            {
+              "fullDescription": {
+                "text": "A pipeline file that could not be parsed. A malformed workflow is itself a (LOW) finding: it may silently not run, and it hides from analysis."
+              },
+              "help": {
+                "text": "A pipeline file that could not be parsed. A malformed workflow is itself a (LOW) finding: it may silently not run, and it hides from analysis.\n\nFalse-positive note: Non-pipeline files matching pipeline names (e.g. templates) can trip this."
+              },
+              "id": "R0",
+              "name": "Unparseablepipelinefile",
+              "shortDescription": {
+                "text": "Unparseable pipeline file"
+              }
+            },
+            {
+              "fullDescription": {
+                "text": "Privileged workflows processing attacker-controllable input: pull_request_target/workflow_run checking out PR-head code (pwn-request), artifact downloads from untrusted runs (artifact poisoning), checkout credential persistence on PR-driven workflows, self-hosted runners exposed to PRs, and MR-triggered pipelines touching protected credentials."
+              },
+              "help": {
+                "text": "Privileged workflows processing attacker-controllable input: pull_request_target/workflow_run checking out PR-head code (pwn-request), artifact downloads from untrusted runs (artifact poisoning), checkout credential persistence on PR-driven workflows, self-hosted runners exposed to PRs, and MR-triggered pipelines touching protected credentials.\n\nFalse-positive note: pull_request_target is legitimate for labeling/triage that never touches PR code — reachability to a checkout of PR head is what escalates. Verify the job actually uses the untrusted input."
+              },
+              "id": "R1",
+              "name": "Dangeroustriggers",
+              "shortDescription": {
+                "text": "Dangerous triggers"
+              }
+            },
+            {
+              "fullDescription": {
+                "text": "Attacker-controllable context (PR/issue titles and bodies, comments, head refs, commit messages, MR variables, CHANGE_* values) interpolated directly into a shell run/script line."
+              },
+              "help": {
+                "text": "Attacker-controllable context (PR/issue titles and bodies, comments, head refs, commit messages, MR variables, CHANGE_* values) interpolated directly into a shell run/script line.\n\nFalse-positive note: Interpolating trusted context (github.sha, github.repository) is safe and not flagged. The fix is routing the value through env: and referencing it as a quoted shell variable."
+              },
+              "id": "R2",
+              "name": "Expressioninjection",
+              "shortDescription": {
+                "text": "Expression injection"
+              }
+            },
+            {
+              "fullDescription": {
+                "text": "Actions and container images referenced by mutable tags or branches instead of commit SHAs / digests — a supply-chain hijack vector, weighted by first- vs third-party publisher."
+              },
+              "help": {
+                "text": "Actions and container images referenced by mutable tags or branches instead of commit SHAs / digests — a supply-chain hijack vector, weighted by first- vs third-party publisher.\n\nFalse-positive note: SHA pinning trades away automatic updates; pair it with an update bot. First-party (actions/, github/) references are lower urgency, not zero."
+              },
+              "id": "R3",
+              "name": "Action/imagepinning",
+              "shortDescription": {
+                "text": "Action / image pinning"
+              }
+            },
+            {
+              "fullDescription": {
+                "text": "Missing explicit permissions block (broad default on many setups), write-all grants, over-broad write scopes on the job token, and blanket secrets: inherit into reusable workflows."
+              },
+              "help": {
+                "text": "Missing explicit permissions block (broad default on many setups), write-all grants, over-broad write scopes on the job token, and blanket secrets: inherit into reusable workflows.\n\nFalse-positive note: Some jobs legitimately need contents:write (release automation). The recommendation is an explicit least-privilege block, not removing needed scopes."
+              },
+              "id": "R4",
+              "name": "Tokenpermissions",
+              "shortDescription": {
+                "text": "Token permissions"
+              }
+            },
+            {
+              "fullDescription": {
+                "text": "Secrets reachable from untrusted-trigger jobs, secrets echoed to logs or passed as command-line arguments, and plaintext credential-shaped strings hardcoded in pipeline files (redacted in all output)."
+              },
+              "help": {
+                "text": "Secrets reachable from untrusted-trigger jobs, secrets echoed to logs or passed as command-line arguments, and plaintext credential-shaped strings hardcoded in pipeline files (redacted in all output).\n\nFalse-positive note: High-entropy detection also matches hashes and opaque IDs — such findings carry LOW confidence and surface without blocking. Values are always redacted."
+              },
+              "id": "R5",
+              "name": "Secretexposure",
+              "shortDescription": {
+                "text": "Secret exposure"
+              }
+            },
+            {
+              "fullDescription": {
+                "text": "curl|bash-style install patterns, tool downloads without checksum verification, remote content piped into interpreters, and opting back into deprecated insecure workflow commands."
+              },
+              "help": {
+                "text": "curl|bash-style install patterns, tool downloads without checksum verification, remote content piped into interpreters, and opting back into deprecated insecure workflow commands.\n\nFalse-positive note: Legitimate setup scripts use these patterns constantly; the remediation is pinning + checksum verification, not removal."
+              },
+              "id": "R6",
+              "name": "Stepintegrity",
+              "shortDescription": {
+                "text": "Step integrity"
+              }
+            }
+          ],
+          "version": "0.1.0"
+        }
+      }
+    }
+  ],
+  "version": "2.1.0"
+}

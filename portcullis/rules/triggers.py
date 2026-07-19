@@ -18,7 +18,12 @@ from portcullis.core.models import (
     ScanConfig,
     Severity,
 )
-from portcullis.platforms.github_actions import is_pr_head_checkout, is_self_hosted
+from portcullis.platforms.github_actions import (
+    is_artifact_download,
+    is_pr_head_checkout,
+    is_self_hosted,
+    persists_credentials,
+)
 from portcullis.rules.common import SECRETISH_NAME_RE, capped_confidence
 
 RULES = [
@@ -28,7 +33,9 @@ RULES = [
         summary=(
             "Privileged workflows processing attacker-controllable input: "
             "pull_request_target/workflow_run checking out PR-head code "
-            "(pwn-request), self-hosted runners exposed to PRs, and "
+            "(pwn-request), artifact downloads from untrusted runs "
+            "(artifact poisoning), checkout credential persistence on "
+            "PR-driven workflows, self-hosted runners exposed to PRs, and "
             "MR-triggered pipelines touching protected credentials."
         ),
         fp_note=(
@@ -118,7 +125,74 @@ def _check_github(pipeline: Pipeline) -> list[Finding]:
                     )
                 )
 
-    if privileged or any(t.untrusted_input for t in pipeline.triggers):
+    if any(t.event == "workflow_run" for t in privileged):
+        for job in pipeline.jobs:
+            for step in job.steps:
+                if is_artifact_download(step):
+                    findings.append(
+                        Finding(
+                            rule_id="R1",
+                            kind="artifact-poisoning",
+                            message=(
+                                f"Job '{job.name}' downloads artifacts inside a "
+                                "workflow_run-triggered workflow. Artifacts produced "
+                                "by the triggering (possibly fork PR) run are "
+                                "attacker-controlled input; extracting or executing "
+                                "them in this privileged context is the artifact-"
+                                "poisoning pattern."
+                            ),
+                            remediation=(
+                                "Treat downloaded artifacts as untrusted data: never "
+                                "execute them, validate structure/paths before use, "
+                                "and keep this workflow's permissions minimal."
+                            ),
+                            file_path=pipeline.file_path,
+                            line=step.line,
+                            key_path=step.key_path,
+                            job_name=job.name,
+                            step_name=step.name,
+                            base_severity=Severity.MEDIUM,
+                            confidence=Confidence.MEDIUM,
+                            evidence=f"workflow_run trigger + artifact download at step '{step.name}'",
+                            untrusted_reachable=True,
+                            escalatable=False,
+                        )
+                    )
+
+    untrusted_input_present = bool(privileged) or any(
+        t.untrusted_input for t in pipeline.triggers
+    )
+    if untrusted_input_present:
+        for job in pipeline.jobs:
+            for step in job.steps:
+                if persists_credentials(step):
+                    findings.append(
+                        Finding(
+                            rule_id="R1",
+                            kind="credential-persistence",
+                            message=(
+                                f"actions/checkout in job '{job.name}' persists the "
+                                "repository token into .git config (the default) in a "
+                                "workflow reachable from PR-driven events — later "
+                                "steps and checked-out tooling can read it from disk."
+                            ),
+                            remediation=(
+                                "Add 'persist-credentials: false' to the checkout "
+                                "step unless a later step genuinely needs the "
+                                "persisted token."
+                            ),
+                            file_path=pipeline.file_path,
+                            line=step.line,
+                            key_path=step.key_path,
+                            job_name=job.name,
+                            step_name=step.name,
+                            base_severity=Severity.LOW,
+                            confidence=Confidence.MEDIUM,
+                            evidence="actions/checkout without persist-credentials: false",
+                            untrusted_reachable=job.reachable_from_untrusted,
+                            escalatable=False,
+                        )
+                    )
         for job in pipeline.jobs:
             if is_self_hosted(job):
                 findings.append(

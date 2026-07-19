@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import fnmatch
 import os
+import re
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -24,6 +25,44 @@ from portcullis.core.models import (
 from portcullis.platforms import ALL_PLATFORMS
 from portcullis.platforms.base import ParseError
 from portcullis.rules import ALL_RULE_MODULES
+
+# Inline suppression: `# portcullis: ignore` (all rules) or
+# `# portcullis: ignore[R2,R5]`, as a trailing comment on the finding's line
+# or on the line directly above it. `//` works for Jenkinsfiles.
+SUPPRESS_RE = re.compile(
+    r"(?:#|//)\s*portcullis:\s*ignore(?:\[([A-Za-z0-9,\s]+)\])?", re.IGNORECASE
+)
+
+
+def _parse_suppressions(text: str) -> dict[int, set[str] | None]:
+    """Map of line number → suppressed rule ids (None = all rules).
+
+    A marker on line N applies to findings on line N and line N+1, covering
+    both trailing-comment and comment-above placement.
+    """
+    out: dict[int, set[str] | None] = {}
+    for i, line in enumerate(text.splitlines(), start=1):
+        m = SUPPRESS_RE.search(line)
+        if not m:
+            continue
+        rules = (
+            {r.strip().upper() for r in m.group(1).split(",") if r.strip()}
+            if m.group(1)
+            else None
+        )
+        for target in (i, i + 1):
+            if rules is None or (target in out and out[target] is None):
+                out[target] = None  # suppress-all wins
+            else:
+                out[target] = (out.get(target) or set()) | rules
+    return out
+
+
+def _is_suppressed(finding: Finding, suppressions: dict[int, set[str] | None]) -> bool:
+    rules = suppressions.get(finding.line, "absent")
+    if rules == "absent":
+        return False
+    return rules is None or finding.rule_id in rules
 
 
 def _load_gitignore(root: Path) -> list[str]:
@@ -84,6 +123,7 @@ def scan(root: Path, config: ScanConfig | None = None, now: str | None = None) -
     findings: list[Finding] = []
     files_scanned: list[str] = []
     skipped: list[dict[str, str]] = []
+    suppressed: list[dict[str, object]] = []
     platforms_seen: set[str] = set()
 
     for rel_path in discover_files(root):
@@ -109,8 +149,20 @@ def scan(root: Path, config: ScanConfig | None = None, now: str | None = None) -
                 findings.append(_parse_finding(rel_path, f"unexpected parse failure: {exc}"))
                 skipped.append({"file": rel_path, "reason": f"unexpected: {exc}"})
                 break
+            suppressions = _parse_suppressions(text)
             for module in ALL_RULE_MODULES:
-                findings.extend(module.check(pipeline, config))
+                for finding in module.check(pipeline, config):
+                    if suppressions and _is_suppressed(finding, suppressions):
+                        suppressed.append(
+                            {
+                                "file": finding.file_path,
+                                "line": finding.line,
+                                "rule_id": finding.rule_id,
+                                "kind": finding.kind,
+                            }
+                        )
+                    else:
+                        findings.append(finding)
             for warning in pipeline.warnings:
                 skipped.append({"file": rel_path, "reason": f"note: {warning}"})
             break  # a file belongs to exactly one platform
@@ -128,6 +180,9 @@ def scan(root: Path, config: ScanConfig | None = None, now: str | None = None) -
         score=risk.score(findings),
         score_formula=risk.SCORE_FORMULA,
         priority_counts=risk.priority_counts(findings),
+        suppressed=sorted(
+            suppressed, key=lambda s: (s["file"], s["line"], s["rule_id"], s["kind"])
+        ),
     )
 
 

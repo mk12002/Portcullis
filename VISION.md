@@ -40,5 +40,6 @@ priority function, and the score.
 3. More platforms behind the same normalized model: CircleCI, Azure
    Pipelines, Buildkite.
 4. Auto-fix suggestions as diffs (route through `env:`, pin to SHA).
-5. VEX-style suppression so CI stays intentionally green with accepted risk
-   annotated.
+5. Richer suppression: inline `portcullis: ignore[...]` comments shipped in
+   0.1.0; next is a reviewed suppression file (VEX-style, with owner and
+   expiry) for org-level acceptance workflows.
