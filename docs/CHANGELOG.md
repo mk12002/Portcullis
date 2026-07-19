@@ -61,6 +61,23 @@ fastapi, requests, actions/runner, gitlab-runner, jenkinsci/pipeline-examples,
 - Verified head-to-head vs zizmor 1.27.0: directional agreement on repo health,
   and Portcullis scanned the GitLab/Jenkins files zizmor cannot.
 
+### Security hardening (the parser processes untrusted repos)
+A self-security-review found and fixed a real denial-of-service, plus added
+defense-in-depth. All covered by `tests/test_security.py`:
+- **YAML alias-bomb ("billion laughs") DoS — FIXED.** A 514-byte file with an
+  alias bomb under `env:` made the rules phase run ~6 s (10⁷ nodes); two more
+  levels would hang ~10 min. A bounded node-budget walk now refuses such files
+  in ~0.6 s while leaving legitimate anchor reuse untouched.
+- **Oversized-file and deep-nesting resource exhaustion — bounded.** 2 MB file
+  cap; deep recursion degrades to a LOW finding, never a crash.
+- **Symlink traversal — blocked.** Symlinked pipeline files are skipped, so a
+  malicious repo can't read arbitrary host files into the report.
+- **HTML report XSS — hardened.** All evidence was already HTML-escaped; added a
+  strict `Content-Security-Policy` (`default-src 'none'`) so the self-contained
+  report can never execute script or make a network request.
+- Confirmed clean: no `eval`/`exec`/`subprocess`/`pickle`/unsafe-YAML sinks; the
+  round-trip loader cannot construct arbitrary Python objects.
+
 ### Safety & quality
 - 150+ tests: risk truth table, taint cases, determinism-under-shuffle,
   per-platform known-answer fixtures, emitter byte-determinism, secret

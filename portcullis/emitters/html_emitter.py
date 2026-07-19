@@ -92,6 +92,12 @@ def emit_html(report: Report) -> str:
     parts.append(
         "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\">"
         "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+        # Defense-in-depth: all finding evidence is HTML-escaped, but the report
+        # is built from untrusted pipeline content, so a strict CSP forbids any
+        # script execution and any network request. The report is fully
+        # self-contained (inline CSS only), so this never breaks rendering.
+        "<meta http-equiv=\"Content-Security-Policy\" content=\""
+        "default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'\">"
         f"<title>Portcullis report — {_esc(report.target)}</title>"
         f"<style>{_CSS}</style></head><body><div class=\"wrap\">"
     )

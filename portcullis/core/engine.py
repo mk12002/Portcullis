@@ -26,6 +26,12 @@ from portcullis.platforms import ALL_PLATFORMS
 from portcullis.platforms.base import ParseError
 from portcullis.rules import ALL_RULE_MODULES
 
+# Hardening: pipeline files come from untrusted repositories. Real ones are
+# tiny (the largest we've seen is well under 1 MB), so a generous size cap
+# bounds parse time, regex work, and memory against a hostile giant file
+# without affecting any legitimate input.
+MAX_FILE_BYTES = 2_000_000
+
 # Inline suppression: `# portcullis: ignore` (all rules) or
 # `# portcullis: ignore[R2,R5]`, as a trailing comment on the finding's line
 # or on the line directly above it. `//` works for Jenkinsfiles.
@@ -133,6 +139,30 @@ def scan(root: Path, config: ScanConfig | None = None, now: str | None = None) -
             files_scanned.append(rel_path)
             platforms_seen.add(name)
             full = root / rel_path
+            # Never follow a symlinked pipeline file: on an untrusted repo it
+            # could point at an arbitrary host file (e.g. /etc/passwd), whose
+            # contents would then be read and could surface in the report.
+            # Legitimate pipeline files are never symlinks.
+            if full.is_symlink():
+                findings.append(_parse_finding(rel_path, "skipped: symlinked file not followed"))
+                skipped.append({"file": rel_path, "reason": "symlink not followed"})
+                break
+            try:
+                size = full.stat().st_size
+            except OSError as exc:
+                findings.append(_parse_finding(rel_path, f"unreadable file: {exc}"))
+                skipped.append({"file": rel_path, "reason": str(exc)})
+                break
+            if size > MAX_FILE_BYTES:
+                findings.append(
+                    _parse_finding(
+                        rel_path,
+                        f"skipped: file is {size} bytes, over the "
+                        f"{MAX_FILE_BYTES}-byte scan limit",
+                    )
+                )
+                skipped.append({"file": rel_path, "reason": f"over size limit ({size} bytes)"})
+                break
             try:
                 text = full.read_bytes().decode("utf-8")
             except (OSError, UnicodeDecodeError) as exc:
