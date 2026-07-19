@@ -1,0 +1,15 @@
+# INERT-BUT-VULNERABLE FIXTURE — escalation contrast case.
+# Same injection shape as vulnerable.yml, but on a push trigger: R2 fires at
+# HIGH and is NOT escalated to CRITICAL (no untrusted-privileged trigger).
+name: fixture-push-injection
+on: push
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: print commit message (injection sink; inert payload)
+        run: echo "last commit ${{ github.event.head_commit.message }}"

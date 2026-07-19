@@ -1,0 +1,14 @@
+// CLEAN FIXTURE — must produce zero findings: digest-pinned agent image,
+// single-quoted sh steps, no credentials exposure, no change-request context.
+pipeline {
+  agent {
+    docker { image 'python@sha256:0000000000000000000000000000000000000000000000000000000000000001' }
+  }
+  stages {
+    stage('Test') {
+      steps {
+        sh 'echo running tests'
+      }
+    }
+  }
+}

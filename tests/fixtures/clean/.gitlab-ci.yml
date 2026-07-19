@@ -1,0 +1,7 @@
+# CLEAN FIXTURE — must produce zero findings: digest-pinned image, quoted
+# trusted variables, no MR-exposed credentials, no remote-pipe installs.
+build:
+  image: python@sha256:0000000000000000000000000000000000000000000000000000000000000001
+  script:
+    - echo "building commit $CI_COMMIT_SHORT_SHA"
+    - echo "tests pass"

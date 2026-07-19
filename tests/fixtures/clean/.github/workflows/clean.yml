@@ -1,0 +1,22 @@
+# CLEAN FIXTURE — a well-secured workflow that must produce zero findings.
+# SHA-pinned actions (fixture SHAs are placeholder 40-hex values), explicit
+# least-privilege permissions, untrusted context routed through env.
+name: fixture-clean
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@0000000000000000000000000000000000000001 # v4 (fixture SHA)
+      - name: safe use of commit message (env-routed, quoted)
+        env:
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: echo "$COMMIT_MSG"
+      - name: run tests
+        run: echo "tests pass"

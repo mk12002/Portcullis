@@ -1,0 +1,29 @@
+// INERT-BUT-VULNERABLE FIXTURE — test data for Portcullis, not a real pipeline.
+// The credentials id is fake, the domain is example.com, payloads are inert echoes.
+// Known answers:
+//   R1 pr-context-credentials — credentials bound + CHANGE_* context
+//   R2 groovy-interpolation   — env.CHANGE_TITLE in a double-quoted sh
+//   R3 image-mutable-latest   — node:latest agent image
+//   R5 secret-echoed          — credential variable echoed
+//   R6 curl | bash            — unverified remote install
+pipeline {
+  agent {
+    docker { image 'node:latest' }
+  }
+  environment {
+    FIXTURE_FAKE_DEPLOY_TOKEN = credentials('fixture-fake-deploy-token')
+  }
+  stages {
+    stage('Build') {
+      steps {
+        sh "echo Building change: ${env.CHANGE_TITLE}"
+        sh 'curl -sSL https://example.com/tool-setup.sh | bash'
+      }
+    }
+    stage('Deploy') {
+      steps {
+        sh 'echo deploy token is $FIXTURE_FAKE_DEPLOY_TOKEN'
+      }
+    }
+  }
+}

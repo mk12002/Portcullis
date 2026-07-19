@@ -1,0 +1,48 @@
+# Portcullis CI — written to pass Portcullis's own rules:
+# least-privilege permissions (R4), SHA-pinned actions (R3), no untrusted
+# triggers with secrets exposure (R1/R5), no curl|bash installs (R6).
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read # least privilege — passes Portcullis R4
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1 (SHA-pinned — passes R3)
+      - uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # v5.0.0
+        with:
+          python-version: ${{ matrix.python }}
+      - name: install
+        run: pip install -e ".[dev]"
+      - name: lint
+        run: python -m ruff check .
+      - name: type-check
+        run: python -m mypy portcullis
+      - name: test
+        run: python -m pytest --cov=portcullis --cov-report=term-missing
+
+      # --- dogfood: Portcullis must gate its own fixtures correctly ---
+      - name: dogfood — vulnerable fixture must trip the P0 gate
+        run: |
+          set +e
+          portcullis scan tests/fixtures/github --fail-on P0 --quiet --format json --out /tmp/pc-gate
+          code=$?
+          set -e
+          echo "exit code: $code"
+          test "$code" -eq 1
+      - name: dogfood — clean fixture must pass the strictest gate
+        run: portcullis scan tests/fixtures/clean --fail-on P3 --quiet --format json --out /tmp/pc-clean
+      - name: dogfood — Portcullis's own workflows must pass Portcullis
+        run: |
+          mkdir -p /tmp/selfscan
+          cp -r .github /tmp/selfscan/
+          portcullis scan /tmp/selfscan --fail-on P3 --format json --out /tmp/pc-self

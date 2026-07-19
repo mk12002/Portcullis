@@ -1,0 +1,43 @@
+# INERT-BUT-VULNERABLE FIXTURE — test data for Portcullis, not a real workflow.
+# Deliberately misconfigured to exercise the detection rules; every "payload"
+# is an inert echo and every secret reference is an obviously fake name.
+# Known answers:
+#   R1 pwn-request       — checkout of PR head under pull_request_target
+#   R2 expression-injection — PR title interpolated into run (escalates to CRITICAL)
+#   R3 unpinned actions  — third-party @v3, first-party @v4/@v5
+#   R4 write-all         — top-level permissions
+#   R5 secret-echoed + secret-untrusted-context
+#   R6 curl | bash       — unverified remote install
+name: fixture-vulnerable-triage
+on:
+  pull_request_target:
+
+permissions: write-all
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: print title (injection sink; inert payload)
+        run: echo "PR title ${{ github.event.pull_request.title }}"
+      - name: notify (echoes a secret reference; name is obviously fake)
+        run: echo "webhook token ${{ secrets.FIXTURE_FAKE_WEBHOOK_TOKEN }}"
+      - name: lint helper (third-party, tag-pinned)
+        uses: example-org/super-linter@v3
+      - name: install tool (unverified remote install; inert example domain)
+        run: curl -sSL https://example.com/install.sh | bash
+
+  matrix-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: build (trusted matrix context — not an injection)
+        run: echo "building on ${{ matrix.python }}"

@@ -1,0 +1,6 @@
+# MALFORMED FIXTURE — invalid YAML; must produce a warning + LOW R0 finding,
+# never a crash.
+name: fixture-broken
+on: [push
+jobs:
+  oops: {steps: [

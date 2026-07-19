@@ -1,0 +1,25 @@
+# INERT-BUT-VULNERABLE FIXTURE — test data for Portcullis, not a real pipeline.
+# The variable value below is fake (contains "Fake"), the domain is example.com,
+# and every payload is an inert echo.
+# Known answers:
+#   R1 mr-untrusted-context — MR-triggered job + credential-looking variable
+#   R2 variable-injection   — unquoted MR title in script (escalates: MR context)
+#   R3 image-mutable-latest (node:latest) + image-pinned-tag (python:3.11)
+#   R5 plaintext-secret (redacted) + secret-echoed
+#   R6 curl | bash
+variables:
+  FIXTURE_FAKE_API_TOKEN: "Fake9qWz3xVr7pLm2kJn8tBs4dCg6hYu"
+
+mr_lint:
+  image: node:latest
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+  script:
+    - echo MR title is $CI_MERGE_REQUEST_TITLE
+    - echo "token present? $FIXTURE_FAKE_API_TOKEN"
+    - curl -sSL https://example.com/setup.sh | bash
+
+build:
+  image: python:3.11
+  script:
+    - echo "build ok"
