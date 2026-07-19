@@ -178,6 +178,52 @@ jobs:
     assert ks["unsecure-commands"][0].job_name == "a"
 
 
+# --- plaintext-secret precision (real-world FP reduction) ----------------------
+
+def test_non_secret_keys_not_flagged_as_plaintext(tmp_path):
+    # Mirrors real-world FPs found on actions/runner + fastapi: high-entropy
+    # values under structurally-non-secret keys (with: name, env: platforms,
+    # project-url) must not be reported.
+    report = _scan(
+        tmp_path,
+        """name: t
+on: push
+permissions: {contents: read}
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    env:
+      platforms: linux/amd64,linux/arm64
+    steps:
+      - uses: example-org/upload@0000000000000000000000000000000000000001
+        with:
+          name: runner-package-linux-x64-trimmed
+          project-url: https://github.com/orgs/example/projects/1
+""",
+    )
+    assert "plaintext-secret" not in kinds(report)
+
+
+def test_real_secret_shaped_value_still_flagged(tmp_path):
+    report = _scan(
+        tmp_path,
+        """name: t
+on: push
+permissions: {contents: read}
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    env:
+      API_TOKEN: Fake9qWz3xVr7pLm2kJn8tBs4dCg6hYu
+    steps:
+      - run: echo ok
+""",
+    )
+    ks = kinds(report)
+    assert "plaintext-secret" in ks
+    assert "Fake9qWz3xVr7pLm2kJn8tBs4dCg6hYu" not in ks["plaintext-secret"][0].evidence
+
+
 # --- inline suppressions -------------------------------------------------------
 
 def test_trailing_comment_suppresses_specific_rule(tmp_path):

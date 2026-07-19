@@ -41,12 +41,56 @@ def looks_high_entropy(value: str) -> bool:
         return False
     if "${{" in v or v.startswith("$") or " " in v:
         return False
+    # Paths, lists, URLs, and image refs are common high-entropy non-secrets
+    # (e.g. "linux/amd64,linux/arm64", a project URL). A real credential is a
+    # single opaque token, so reject values carrying these structural chars.
+    if any(c in v for c in ("/", ",", "://", "\\")):
+        return False
     classes = sum(
         1
         for pattern in (r"[a-z]", r"[A-Z]", r"[0-9]", r"[^A-Za-z0-9]")
         if re.search(pattern, v)
     )
     return classes >= 3 and shannon_entropy(v) >= 3.5
+
+
+# Keys whose values are structurally never secrets — excluded from plaintext
+# scanning to cut false positives on real workflows (job/artifact names,
+# image platforms, URLs, refs). Matched case-insensitively.
+NON_SECRET_KEYS = frozenset(
+    {
+        "name",
+        "platforms",
+        "platform",
+        "url",
+        "project-url",
+        "homepage",
+        "repository",
+        "image",
+        "images",
+        "tags",
+        "tag",
+        "path",
+        "paths",
+        "working-directory",
+        "runs-on",
+        "container",
+        "title",
+        "description",
+        "ref",
+        "branch",
+        "tag-name",
+        "version",
+        "id",
+        "uses",
+        "runner",
+        "labels",
+    }
+)
+
+
+def is_non_secret_key(key: str) -> bool:
+    return key.strip().lower() in NON_SECRET_KEYS
 
 
 def redact(key: str, value: str) -> str:

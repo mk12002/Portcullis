@@ -109,6 +109,25 @@ def test_two_independent_mediums_on_one_job_are_p1():
     assert a.priority == Priority.P1 and b.priority == Priority.P1
 
 
+def test_corroboration_on_trusted_job_floors_at_p1_never_p0():
+    # A HIGH third-party pin + MEDIUM broad-write on a manual-dispatch (trusted)
+    # job: corroboration bumps, but must NOT reach the merge-blocking P0 bucket.
+    r3 = make("R3", "unpinned-third-party", Severity.HIGH, Confidence.HIGH)
+    r4 = make("R4", "broad-write", Severity.MEDIUM, Confidence.MEDIUM)
+    risk.assess([r3, r4])
+    assert r3.priority == Priority.P1  # P1 base, corroboration floored at P1
+    assert r4.priority == Priority.P1  # P2 base bumped to P1
+
+
+def test_corroboration_on_untrusted_job_can_reach_p0():
+    # Same shape but the job is attacker-reachable: P0 is warranted.
+    r3 = make("R3", "unpinned-third-party", Severity.HIGH, Confidence.HIGH, untrusted=True)
+    r4 = make("R4", "broad-write", Severity.MEDIUM, Confidence.MEDIUM, untrusted=True)
+    risk.assess([r3, r4])
+    assert r3.severity == Severity.CRITICAL  # escalated HIGH→CRITICAL
+    assert r3.priority == Priority.P0
+
+
 def test_low_confidence_finding_is_capped_at_p3():
     f = assess_one(make("R5", "plaintext-secret", Severity.MEDIUM, Confidence.LOW))
     assert f.priority == Priority.P3

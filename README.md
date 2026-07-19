@@ -9,7 +9,7 @@
 [![python](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](pyproject.toml)
 [![license](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
 [![sarif](https://img.shields.io/badge/output-JSON%20·%20HTML%20·%20SARIF%20·%20MD-4f8cc9)](#outputs)
-[![offline](https://img.shields.io/badge/scan-100%25%20offline-46a758)](THREAT_MODEL.md)
+[![offline](https://img.shields.io/badge/scan-100%25%20offline-46a758)](docs/THREAT_MODEL.md)
 
 </div>
 
@@ -57,6 +57,15 @@ portcullis scan tests/fixtures/github --format all --out ./demo-report
 A committed sample generated from the fixtures lives in [docs/sample-report/](docs/sample-report/) — open [`report.html`](docs/sample-report/report.html) locally (fully self-contained, no CDN, works offline) or read the [Markdown flavor](docs/sample-report/report.md).
 
 The key demonstration in that sample: **the identical injection pattern is CRITICAL/P0 under `pull_request_target` and HIGH/P1 under `push`** — context escalation working, marked with `↑` in every output.
+
+## Proven on real-world pipelines
+
+Portcullis was run against **66 real pipeline files from 10 well-known OSS projects** (flask, fastapi, requests, actions/runner, gitlab-runner, jenkinsci/pipeline-examples, …) — full write-up in [docs/EVALUATION.md](docs/EVALUATION.md):
+
+- **Zero crashes** in ~1.4s; malformed files degraded to LOW findings; **0 secret-value leaks** across all four output formats.
+- **Sensible ranking**: well-maintained repos scored 95–100, problematic ones scored low with actionable findings.
+- **Head-to-head vs [zizmor](https://docs.zizmor.sh) 1.27.0**: directional agreement on which repos are healthy — and Portcullis scanned the GitLab & Jenkins files zizmor reports *"no audit was performed"* on.
+- The dataset caught **two calibration bugs** (P0 over-escalation of hygiene; plaintext-secret false positives), both fixed with regression tests — cutting dataset-wide false P0s from 9 to 3 and plaintext FPs from 9 to 0.
 
 ## Detection rules
 
@@ -131,7 +140,7 @@ docs/
 
 ## Guarantees & limitations
 
-**Guarantees** (see [THREAT_MODEL.md](THREAT_MODEL.md)): never executes pipeline content · no network at scan time · malformed input degrades to a LOW finding, never a crash · detected secrets redacted in every format · byte-deterministic output.
+**Guarantees** (see [THREAT_MODEL.md](docs/THREAT_MODEL.md)): never executes pipeline content · no network at scan time · malformed input degrades to a LOW finding, never a crash · detected secrets redacted in every format · byte-deterministic output.
 
 **Limitations** (read before trusting a clean scan): static reachability is approximate — confidence marks that honestly · reusable workflows are followed shallowly · Jenkins/Groovy parsing is best-effort, capped at MEDIUM confidence · high-entropy secret detection has false positives (LOW confidence) · `.gitignore` support is a pragmatic subset · **a clean scan is evidence, not proof**.
 
@@ -141,7 +150,7 @@ The repo ships deliberately vulnerable fixtures: genuinely misconfigured (real i
 
 ## Contributing · Docs
 
-[CONTRIBUTING.md](CONTRIBUTING.md) — add a platform (a parser) or a rule (one function) · [docs/COMPARISON.md](docs/COMPARISON.md) — landscape & prior art · [VISION.md](VISION.md) — non-goals & roadmap · [CHANGELOG.md](CHANGELOG.md) · original build spec under [docs/spec/](docs/spec/).
+[docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) — add a platform (a parser) or a rule (one function) · [docs/COMPARISON.md](docs/COMPARISON.md) — landscape & prior art · [docs/EVALUATION.md](docs/EVALUATION.md) — real-world results · [docs/VISION.md](docs/VISION.md) — non-goals & roadmap · [docs/CHANGELOG.md](docs/CHANGELOG.md) · [docs/content/](docs/content/) — blog posts & launch kit · original build spec under [docs/spec/](docs/spec/).
 
 ## License
 

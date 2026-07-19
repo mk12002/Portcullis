@@ -95,7 +95,12 @@ def assess(findings: list[Finding]) -> list[Finding]:
         if len({f.rule_id for f in participants}) >= 2:
             for f in participants:
                 assert f.priority is not None
-                f.priority = Priority(max(Priority.P0.value, f.priority.value - 1))
+                # Corroboration bumps one level, but P0 is reserved for
+                # attacker-reachable criticals: on a trusted-trigger job it
+                # floors at P1, so a pile of pinning + permission hygiene on a
+                # manual-dispatch job never becomes a merge-blocking P0.
+                floor = Priority.P0.value if f.untrusted_reachable else Priority.P1.value
+                f.priority = Priority(max(floor, f.priority.value - 1))
 
     findings.sort(key=lambda f: f.sort_key())
     return findings

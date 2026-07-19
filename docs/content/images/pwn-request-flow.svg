@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#f38ba8"/>
+    </marker>
+    <marker id="g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8ba3bd"/>
+    </marker>
+  </defs>
+  <rect width="960" height="420" rx="12" fill="#1e1e2e"/>
+  <text x="30" y="40" fill="#cdd6f4" font-size="19" font-weight="700">The pwn-request: how one workflow line leaks your secrets</text>
+  <text x="30" y="62" fill="#9399b2" font-size="12.5">attacker opens a pull request → your CI runs their code with your secrets</text>
+
+  <!-- actors -->
+  <g font-size="12.5">
+    <rect x="30" y="96" width="150" height="58" rx="9" fill="#313244" stroke="#f38ba8"/>
+    <text x="105" y="120" text-anchor="middle" fill="#f38ba8" font-weight="700">🧑‍💻 Attacker</text>
+    <text x="105" y="139" text-anchor="middle" fill="#bac2de" font-size="11">forks your public repo</text>
+
+    <rect x="30" y="196" width="150" height="58" rx="9" fill="#313244" stroke="#89b4fa"/>
+    <text x="105" y="220" text-anchor="middle" fill="#89b4fa" font-weight="700">🔀 Pull request</text>
+    <text x="105" y="239" text-anchor="middle" fill="#bac2de" font-size="11">edits build script</text>
+
+    <rect x="380" y="96" width="220" height="120" rx="10" fill="#232634" stroke="#f9e2af"/>
+    <text x="490" y="120" text-anchor="middle" fill="#f9e2af" font-weight="700">⚙️ Your CI job</text>
+    <text x="490" y="142" text-anchor="middle" fill="#bac2de" font-size="11">trigger: pull_request_target</text>
+    <text x="490" y="160" text-anchor="middle" fill="#f38ba8" font-size="11">checks out PR code ⚡</text>
+    <text x="490" y="178" text-anchor="middle" fill="#f38ba8" font-size="11">runs it with full permissions ⚡</text>
+    <text x="490" y="198" text-anchor="middle" fill="#bac2de" font-size="11">secrets mounted in env</text>
+
+    <rect x="770" y="96" width="160" height="58" rx="9" fill="#313244" stroke="#a6e3a1"/>
+    <text x="850" y="120" text-anchor="middle" fill="#a6e3a1" font-weight="700">🔑 Secrets</text>
+    <text x="850" y="139" text-anchor="middle" fill="#bac2de" font-size="11">deploy keys, tokens</text>
+
+    <rect x="770" y="238" width="160" height="58" rx="9" fill="#313244" stroke="#f38ba8"/>
+    <text x="850" y="262" text-anchor="middle" fill="#f38ba8" font-weight="700">📤 Exfiltrated</text>
+    <text x="850" y="281" text-anchor="middle" fill="#bac2de" font-size="11">to attacker server</text>
+  </g>
+
+  <!-- trust boundary -->
+  <line x1="340" y1="80" x2="340" y2="330" stroke="#f38ba8" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="348" y="330" fill="#f38ba8" font-size="10.5">▲ trust boundary — attacker's code is now inside it</text>
+
+  <!-- arrows -->
+  <g stroke-width="1.8" fill="none">
+    <path d="M105 154 L105 194" stroke="#f38ba8" marker-end="url(#a)"/>
+    <path d="M180 225 C 280 225, 300 170, 378 158" stroke="#f38ba8" marker-end="url(#a)"/>
+    <text x="230" y="205" fill="#f38ba8" font-size="10.5">① malicious PR</text>
+    <path d="M600 140 L768 128" stroke="#8ba3bd" marker-end="url(#g)"/>
+    <text x="630" y="120" fill="#9399b2" font-size="10.5">② job reads secrets</text>
+    <path d="M850 154 C 850 190, 850 200, 850 236" stroke="#f38ba8" marker-end="url(#a)"/>
+    <text x="700" y="215" fill="#f38ba8" font-size="10.5">③ attacker code sends them out</text>
+    <path d="M600 200 C 660 230, 700 250, 768 262" stroke="#f38ba8" marker-end="url(#a)"/>
+  </g>
+
+  <!-- portcullis catch -->
+  <rect x="30" y="300" width="640" height="86" rx="10" fill="#1a2b1e" stroke="#a6e3a1"/>
+  <text x="48" y="326" fill="#a6e3a1" font-size="13" font-weight="700">🏰 Portcullis catches this statically — before it ships</text>
+  <text x="48" y="348" fill="#bac2de" font-size="11.5">R1 pwn-request: pull_request_target + PR-head checkout → CRITICAL / P0. Because the job is</text>
+  <text x="48" y="366" fill="#bac2de" font-size="11.5">attacker-reachable, every other finding on it escalates one level too. The fix: split the workflow,</text>
+  <text x="48" y="382" fill="#bac2de" font-size="11.5">or never check out PR code where secrets live.</text>
+</svg>

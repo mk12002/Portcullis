@@ -24,6 +24,7 @@ from portcullis.core.models import (
 from portcullis.rules.common import (
     SECRETISH_NAME_RE,
     capped_confidence,
+    is_non_secret_key,
     looks_high_entropy,
     redact,
 )
@@ -211,9 +212,13 @@ def _plaintext(pipeline: Pipeline) -> list[Finding]:
     def scan_mapping(mapping, key_path: str, job: Job | None, line: int) -> None:
         for key, value in mapping.items():
             sval = str(value)
+            secretish = bool(SECRETISH_NAME_RE.search(str(key)))
+            # A secret-ish key name always scans; otherwise skip structurally
+            # non-secret keys (names, URLs, image platforms, refs…).
+            if not secretish and is_non_secret_key(str(key)):
+                continue
             if not looks_high_entropy(sval):
                 continue
-            secretish = bool(SECRETISH_NAME_RE.search(str(key)))
             findings.append(
                 Finding(
                     rule_id="R5",
