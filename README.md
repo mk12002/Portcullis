@@ -67,6 +67,8 @@ Portcullis was run against **66 real pipeline files from 10 well-known OSS proje
 - **Head-to-head vs [zizmor](https://docs.zizmor.sh) 1.27.0**: directional agreement on which repos are healthy — and Portcullis scanned the GitLab & Jenkins files zizmor reports *"no audit was performed"* on.
 - The dataset caught **two calibration bugs** (P0 over-escalation of hygiene; plaintext-secret false positives), both fixed with regression tests — cutting dataset-wide false P0s from 9 to 3 and plaintext FPs from 9 to 0.
 
+**Quality bar:** 175 tests, 95% coverage, every rule `kind` explicitly tested. The **SARIF output is validated against the official SARIF 2.1.0 schema**, and the inert fixtures validate against the real GitHub Actions and GitLab CI schemas.
+
 ## Detection rules
 
 | Rule | Checks | Detects |
@@ -140,7 +142,7 @@ docs/
 
 ## Guarantees & limitations
 
-**Guarantees** (see [THREAT_MODEL.md](docs/THREAT_MODEL.md)): never executes pipeline content · no network at scan time · malformed input degrades to a LOW finding, never a crash · detected secrets redacted in every format · byte-deterministic output.
+**Guarantees** (see [THREAT_MODEL.md](docs/THREAT_MODEL.md)): never executes pipeline content · no network at scan time · malformed input degrades to a LOW finding, never a crash · detected secrets redacted in every format · byte-deterministic output · SARIF validated against the official 2.1.0 schema.
 
 **Limitations** (read before trusting a clean scan): static reachability is approximate — confidence marks that honestly · reusable workflows are followed shallowly · Jenkins/Groovy parsing is best-effort, capped at MEDIUM confidence · high-entropy secret detection has false positives (LOW confidence) · `.gitignore` support is a pragmatic subset · **a clean scan is evidence, not proof**.
 

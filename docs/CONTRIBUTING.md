@@ -30,6 +30,13 @@ Because rules run against the normalized model, a new platform gets all six rule
 2. Register the module in `rules/__init__.py::ALL_RULE_MODULES`.
 3. Choose `base_severity` and `confidence` honestly. If the finding's danger already encodes trigger context (like R1), set `escalatable=False` so it isn't double-escalated.
 4. Add truth-table rows to `tests/test_risk.py` if the rule introduces new priority interactions, and fixture assertions for each platform it fires on.
+5. **Every `kind` your rule can emit must have an explicit test.** Run
+   `pytest --cov=portcullis --cov-report=term-missing` and confirm your new
+   branches are covered — a coverage pass is how we find "implemented but
+   untested" behaviors (see `tests/test_rule_coverage_gaps.py`).
+6. If you touch the SARIF emitter, `tests/test_sarif_schema.py` re-validates the
+   output against the official SARIF 2.1.0 schema — keep it green. Install dev
+   deps with `pip install -e ".[dev]"` (pulls in `jsonschema`, dev-only).
 
 ## The inert-fixture law (hard rule)
 

@@ -79,9 +79,15 @@ defense-in-depth. All covered by `tests/test_security.py`:
   round-trip loader cannot construct arbitrary Python objects.
 
 ### Safety & quality
-- 150+ tests: risk truth table, taint cases, determinism-under-shuffle,
-  per-platform known-answer fixtures, emitter byte-determinism, secret
-  redaction (verified on real data: 0 leaks), CLI exit codes, edge cases,
-  automated inertness guard, and a dogfood test asserting Portcullis's own CI
-  passes its own scan at 100/100.
+- 175 tests, 95% coverage: risk truth table, taint cases,
+  determinism-under-shuffle, per-platform known-answer fixtures, emitter
+  byte-determinism, secret redaction (verified on real data: 0 leaks), CLI exit
+  codes, edge cases, automated inertness guard, and a dogfood test asserting
+  Portcullis's own CI passes its own scan at 100/100. Every rule `kind` the
+  engine can emit has an explicit test.
+- **SARIF output is validated against the official SARIF 2.1.0 JSON schema** in
+  the test suite (`tests/test_sarif_schema.py`, schema vendored at
+  `tests/schema/`); the inert fixtures additionally validate against the real
+  GitHub Actions and GitLab CI schemas. `jsonschema` is a dev-only dependency —
+  the tool's runtime still has the single dependency `ruamel.yaml`.
 - Threat model, honest limitations, Apache-2.0.
