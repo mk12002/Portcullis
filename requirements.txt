@@ -7,4 +7,4 @@
 # Portcullis is stdlib-first: this is the ONLY runtime dependency. ruamel.yaml
 # is chosen over PyYAML because its round-trip loader preserves line/column
 # numbers, which the finding-traceability model requires.
-ruamel.yaml>=0.18,<0.19
+ruamel.yaml>=0.18,<0.20

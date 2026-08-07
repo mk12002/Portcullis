@@ -24,7 +24,7 @@ classifiers = [
 # chosen over PyYAML because its round-trip loader preserves line and column
 # numbers for every node — Portcullis's evidence model requires accurate
 # file:line traceability for each finding, which PyYAML cannot provide.
-dependencies = ["ruamel.yaml>=0.18,<0.19"]
+dependencies = ["ruamel.yaml>=0.18,<0.20"]
 
 [project.optional-dependencies]
 # jsonschema is dev-only: it validates the SARIF output against the official
