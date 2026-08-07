@@ -63,12 +63,14 @@ class GitLabCIPlatform(Platform):
             env=as_str_dict(data.get("variables")),
         )
 
-        workflow_mr = _rules_mention_mr(data.get("workflow", {}).get("rules") if isinstance(data.get("workflow"), dict) else None)
+        workflow_mr = _rules_mention_mr(
+            data.get("workflow", {}).get("rules")
+            if isinstance(data.get("workflow"), dict)
+            else None
+        )
         pipeline.triggers.append(Trigger(event="push", line=1))
         if workflow_mr or any(
-            _job_is_mr_triggered(v, workflow_mr)
-            for v in data.values()
-            if isinstance(v, dict)
+            _job_is_mr_triggered(v, workflow_mr) for v in data.values() if isinstance(v, dict)
         ):
             pipeline.triggers.append(
                 Trigger(

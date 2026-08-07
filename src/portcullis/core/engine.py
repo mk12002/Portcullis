@@ -22,9 +22,12 @@ from portcullis.core.models import (
     ScanConfig,
     Severity,
 )
+from portcullis.logging_config import get_logger
 from portcullis.platforms import ALL_PLATFORMS
 from portcullis.platforms.base import ParseError
 from portcullis.rules import ALL_RULE_MODULES
+
+logger = get_logger(__name__)
 
 # Hardening: pipeline files come from untrusted repositories. Real ones are
 # tiny (the largest we've seen is well under 1 MB), so a generous size cap
@@ -52,9 +55,7 @@ def _parse_suppressions(text: str) -> dict[int, set[str] | None]:
         if not m:
             continue
         rules = (
-            {r.strip().upper() for r in m.group(1).split(",") if r.strip()}
-            if m.group(1)
-            else None
+            {r.strip().upper() for r in m.group(1).split(",") if r.strip()} if m.group(1) else None
         )
         for target in (i, i + 1):
             if rules is None or (target in out and out[target] is None):
@@ -121,9 +122,7 @@ def scan(root: Path, config: ScanConfig | None = None, now: str | None = None) -
     generated_at = now or datetime.now(UTC).isoformat(timespec="seconds")
 
     platforms = {
-        name: platform
-        for name, platform in ALL_PLATFORMS.items()
-        if name in config.platforms
+        name: platform for name, platform in ALL_PLATFORMS.items() if name in config.platforms
     }
 
     findings: list[Finding] = []
@@ -132,7 +131,11 @@ def scan(root: Path, config: ScanConfig | None = None, now: str | None = None) -
     suppressed: list[dict[str, object]] = []
     platforms_seen: set[str] = set()
 
-    for rel_path in discover_files(root):
+    all_files = discover_files(root)
+    logger.info(
+        "scanning %s (%d files, platforms=%s)", root, len(all_files), ",".join(sorted(platforms))
+    )
+    for rel_path in all_files:
         for name, platform in platforms.items():
             if not platform.matches(rel_path):
                 continue
@@ -144,6 +147,7 @@ def scan(root: Path, config: ScanConfig | None = None, now: str | None = None) -
             # contents would then be read and could surface in the report.
             # Legitimate pipeline files are never symlinks.
             if full.is_symlink():
+                logger.warning("skipping symlinked pipeline file: %s", rel_path)
                 findings.append(_parse_finding(rel_path, "skipped: symlinked file not followed"))
                 skipped.append({"file": rel_path, "reason": "symlink not followed"})
                 break
@@ -157,8 +161,7 @@ def scan(root: Path, config: ScanConfig | None = None, now: str | None = None) -
                 findings.append(
                     _parse_finding(
                         rel_path,
-                        f"skipped: file is {size} bytes, over the "
-                        f"{MAX_FILE_BYTES}-byte scan limit",
+                        f"skipped: file is {size} bytes, over the {MAX_FILE_BYTES}-byte scan limit",
                     )
                 )
                 skipped.append({"file": rel_path, "reason": f"over size limit ({size} bytes)"})
@@ -169,13 +172,16 @@ def scan(root: Path, config: ScanConfig | None = None, now: str | None = None) -
                 findings.append(_parse_finding(rel_path, f"unreadable file: {exc}"))
                 skipped.append({"file": rel_path, "reason": str(exc)})
                 break
+            logger.debug("parsing %s as %s", rel_path, name)
             try:
                 pipeline = platform.parse(text, rel_path)
             except ParseError as exc:
+                logger.warning("parse error in %s: %s", rel_path, exc)
                 findings.append(_parse_finding(rel_path, str(exc)))
                 skipped.append({"file": rel_path, "reason": str(exc)})
                 break
             except Exception as exc:  # defensive: no single file crashes a scan
+                logger.error("unexpected parse failure in %s: %s", rel_path, exc)
                 findings.append(_parse_finding(rel_path, f"unexpected parse failure: {exc}"))
                 skipped.append({"file": rel_path, "reason": f"unexpected: {exc}"})
                 break

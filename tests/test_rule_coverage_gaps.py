@@ -29,6 +29,7 @@ def kinds(report) -> dict[str, list]:
 
 # --- R2 script-injection (actions/github-script body) --------------------------
 
+
 def test_github_script_untrusted_interpolation_flagged(tmp_path):
     report = _scan(
         tmp_path,
@@ -75,6 +76,7 @@ jobs:
 
 # --- R6 unverified-download (download without checksum, no pipe-to-shell) -------
 
+
 def test_unverified_download_flagged(tmp_path):
     report = _scan(
         tmp_path,
@@ -115,6 +117,7 @@ jobs:
 
 # --- R5 secret-cli-arg (secret on a command line, not an echo) -----------------
 
+
 def test_secret_on_command_line_flagged(tmp_path):
     report = _scan(
         tmp_path,
@@ -136,6 +139,7 @@ jobs:
 
 
 # --- R3 docker:// action reference (unpinned) ----------------------------------
+
 
 def test_docker_uses_without_digest_flagged(tmp_path):
     report = _scan(
@@ -172,6 +176,7 @@ jobs:
 
 
 # --- R4 permissions branches (missing block, top-level write-all, job broad-write) ---
+
 
 def test_missing_permissions_block_flagged(tmp_path):
     report = _scan(
@@ -248,6 +253,7 @@ jobs:
 
 
 # --- R4 top-level broad-write (>=3 write scopes at workflow level) --------------
+
 
 def test_top_level_broad_write_flagged(tmp_path):
     report = _scan(

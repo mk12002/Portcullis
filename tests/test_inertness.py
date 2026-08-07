@@ -22,10 +22,10 @@ FORBIDDEN = [
     r"\bbash\s+-i\b",
     r"base64\s+(-d|--decode)",
     r"\bmkfifo\b",
-    r"AKIA[0-9A-Z]{16}",              # AWS access key id shape
-    r"ghp_[A-Za-z0-9]{36}",           # GitHub PAT shape
+    r"AKIA[0-9A-Z]{16}",  # AWS access key id shape
+    r"ghp_[A-Za-z0-9]{36}",  # GitHub PAT shape
     r"gh[oasr]_[A-Za-z0-9]{36}",
-    r"xox[bpars]-",                   # Slack token shape
+    r"xox[bpars]-",  # Slack token shape
     r"-----BEGIN[A-Z ]*PRIVATE KEY",
     r"hooks\.slack\.com",
     r"curl[^\n]*secrets\.[A-Za-z0-9_]+[^\n]*https?://",  # secret exfil shape
@@ -82,11 +82,17 @@ def test_vulnerable_fixtures_carry_the_inert_marker():
 
 def test_injection_payloads_are_echo_only():
     """Every fixture line interpolating untrusted context must be an inert echo."""
-    untrusted_bits = ("github.event.pull_request.title", "github.event.head_commit.message",
-                      "CI_MERGE_REQUEST_TITLE", "CHANGE_TITLE")
+    untrusted_bits = (
+        "github.event.pull_request.title",
+        "github.event.head_commit.message",
+        "CI_MERGE_REQUEST_TITLE",
+        "CHANGE_TITLE",
+    )
     for path in ALL_FIXTURE_FILES:
         for line in read(path).splitlines():
-            if any(bit in line for bit in untrusted_bits) and ("run:" in line or "sh " in line or line.strip().startswith("- ")):
+            if any(bit in line for bit in untrusted_bits) and (
+                "run:" in line or "sh " in line or line.strip().startswith("- ")
+            ):
                 stripped = re.sub(r"^[\s\-]*", "", line)
                 stripped = re.sub(r"^(run:\s*|sh\s+[\"']?)", "", stripped)
                 assert stripped.startswith("echo") or "env:" in line or "ref:" in line, (

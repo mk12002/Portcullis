@@ -1,0 +1,25 @@
+# Docs — build the MkDocs site and publish to GitHub Pages on push to main.
+# Uses `mkdocs gh-deploy` via run: (no extra actions to pin). Runs only on the
+# trusted `push` trigger, so persisting the checkout token is not flagged.
+name: docs
+on:
+  push:
+    branches: [main]
+    paths: ["docs/**", "mkdocs.yml", ".github/workflows/docs.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: write # to push the built site to the gh-pages branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+      - uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # v5.0.0
+        with:
+          python-version: "3.12"
+      - name: install docs deps
+        run: pip install -e ".[docs]"
+      - name: build + deploy
+        run: mkdocs gh-deploy --force --no-history

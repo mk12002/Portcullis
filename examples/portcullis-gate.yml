@@ -1,0 +1,30 @@
+# Copy this job into your own .github/workflows/ to gate merges on pipeline
+# security. It fails the build if Portcullis finds any P0 (attacker-reachable
+# critical) issue. Pin the action SHAs (shown as examples) for your own repo.
+name: pipeline-security
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  portcullis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # v5.0.0
+        with:
+          python-version: "3.12"
+      - name: install portcullis
+        run: pip install portcullis-scanner
+      - name: scan pipelines (fail on P0)
+        run: portcullis scan . --format sarif --out ./portcullis-report --fail-on P0
+      # Optional: upload the SARIF so findings show in the repo's Security tab.
+      # - uses: github/codeql-action/upload-sarif@<sha> # v3
+      #   with:
+      #     sarif_file: ./portcullis-report/report.sarif

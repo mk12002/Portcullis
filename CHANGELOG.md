@@ -1,5 +1,36 @@
 # Changelog
 
+## Unreleased — packaging & product hardening
+
+Turned the project into a production-shaped, installable Python package.
+
+### Packaging
+- **`src/` layout** (`src/portcullis/`) — the standard package layout that
+  prevents accidental imports of the working tree instead of the installed
+  package. `pip install .` / `pip install -e .` unchanged for users.
+- Ships **type information** (`py.typed`, PEP 561) so downstream `mypy` sees the
+  API. Verified `python -m build` produces a valid sdist + wheel that pass
+  `twine check`, and a clean-venv wheel install exposes the `portcullis` command
+  with **only `ruamel.yaml`** as a runtime dependency.
+- Added `requirements.txt` / `requirements-dev.txt` (mirroring pyproject),
+  richer `[project.urls]`, and a `docs` extra (`mkdocs-material`).
+
+### Observability
+- **Logging** (`portcullis.logging_config`): stderr, silent by default,
+  `-v`/`-vv` for INFO/DEBUG. As a library it never configures the host app's
+  logging. Console summary made ASCII-safe for legacy Windows terminals.
+
+### Project scaffolding
+- `examples/` — runnable example repos (vulnerable + clean), a Python-API
+  script, and a copy-paste CI-gate workflow.
+- **MkDocs Material** documentation site (`mkdocs.yml` + `docs/*.md`), buildable
+  and deployable to GitHub Pages via a workflow.
+- `SECURITY.md`, `CODE_OF_CONDUCT.md`, `CITATION.cff`, GitHub issue/PR templates,
+  Dependabot (pip + actions), and CI/CodeQL/release/docs workflows — all
+  SHA-pinned and least-privilege, so they pass Portcullis's own dogfood scan.
+- `docs/BENCHMARKS` — measured throughput (~360 files/s synthetic; 66 real files
+  in ~1.4 s, zero crashes).
+
 ## 0.1.0 — 2026-07-19
 
 Initial release.

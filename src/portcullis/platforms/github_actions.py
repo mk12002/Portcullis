@@ -46,9 +46,7 @@ PRIVILEGED_UNTRUSTED_EVENTS = {
 # Events carrying attacker input but running *without* secrets by default.
 INPUT_ONLY_UNTRUSTED_EVENTS = {"pull_request"}
 
-GITHUB_HOSTED_RUNNER_RE = re.compile(
-    r"^(ubuntu|windows|macos)-", re.IGNORECASE
-)
+GITHUB_HOSTED_RUNNER_RE = re.compile(r"^(ubuntu|windows|macos)-", re.IGNORECASE)
 
 # `with: ref:` values that check out attacker-controlled PR-head code.
 PR_HEAD_REF_RE = re.compile(
@@ -118,9 +116,7 @@ class GitHubActionsPlatform(Platform):
                 events.append((str(ev), {}, item_line(on, i, line)))
         elif isinstance(on, dict):
             for ev, quals in on.items():
-                events.append(
-                    (str(ev), as_str_dict(quals), key_line(on, ev, line))
-                )
+                events.append((str(ev), as_str_dict(quals), key_line(on, ev, line)))
         else:
             pipeline.warnings.append("unrecognized 'on:' shape")
             return []
@@ -148,8 +144,7 @@ class GitHubActionsPlatform(Platform):
             permissions_line=key_line(node, "permissions", 0) if "permissions" in node else 0,
             condition=str(node["if"]) if "if" in node else None,
             env=as_str_dict(node.get("env")),
-            matrix=isinstance(node.get("strategy"), dict)
-            and "matrix" in node["strategy"],
+            matrix=isinstance(node.get("strategy"), dict) and "matrix" in node["strategy"],
         )
 
         runs_on = node.get("runs-on")
@@ -169,9 +164,7 @@ class GitHubActionsPlatform(Platform):
         if isinstance(services, dict):
             for svc in services.values():
                 if isinstance(svc, dict) and isinstance(svc.get("image"), str):
-                    job.images.append(
-                        ImageRef(svc["image"], value_line(svc, "image"), "service")
-                    )
+                    job.images.append(ImageRef(svc["image"], value_line(svc, "image"), "service"))
 
         # Reusable-workflow call: normalize as a single pseudo-step so pinning
         # rules see the reference. Followed shallowly by design (documented).
@@ -194,9 +187,7 @@ class GitHubActionsPlatform(Platform):
             for idx, step_node in enumerate(steps_node):
                 if not isinstance(step_node, dict):
                     continue
-                job.steps.append(
-                    self._parse_step(idx, step_node, steps_node, job.key_path)
-                )
+                job.steps.append(self._parse_step(idx, step_node, steps_node, job.key_path))
         return job
 
     def _parse_step(self, idx: int, node: dict, seq: Any, job_path: str) -> Step:

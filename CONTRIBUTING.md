@@ -6,7 +6,7 @@
 pip install -e ".[dev]"
 python -m pytest          # full suite
 python -m ruff check .    # lint
-python -m mypy portcullis # types
+python -m mypy src/portcullis # types
 ```
 
 All three must be green before a PR.

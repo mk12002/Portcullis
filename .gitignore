@@ -12,6 +12,9 @@ venv/
 .coverage
 htmlcov/
 portcullis-report/
+site/
+_site_tmp/
+.cleanvenv/
 
 # Local engineering handbook / personal learning notes — not a project deliverable
 portcullis_breakdown/

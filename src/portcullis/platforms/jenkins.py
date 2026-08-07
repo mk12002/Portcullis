@@ -16,9 +16,7 @@ from portcullis.core.models import ImageRef, Job, Pipeline, Step, Trigger
 from portcullis.platforms.base import ParseError, Platform
 
 STAGE_RE = re.compile(r"""\bstage\s*\(\s*['"]([^'"]+)['"]\s*\)""")
-SH_START_RE = re.compile(
-    r"""\b(sh|bat|powershell)\s*\(?\s*(?:script\s*:\s*)?('{3}|"{3}|'|")"""
-)
+SH_START_RE = re.compile(r"""\b(sh|bat|powershell)\s*\(?\s*(?:script\s*:\s*)?('{3}|"{3}|'|")""")
 IMAGE_RE = re.compile(r"""\bimage\s+['"]([^'"]+)['"]""")
 CRED_ENV_RE = re.compile(
     r"""^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*credentials\s*\(\s*['"]([^'"]+)['"]"""

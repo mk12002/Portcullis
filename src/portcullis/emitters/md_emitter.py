@@ -28,15 +28,21 @@ def emit_markdown(report: Report) -> str:
         f"files scanned: {len(report.files_scanned)}"
     )
     lines.append("")
-    lines.append(f"<sub>target `{_cell(report.target)}` · generated {report.generated_at} · "
-                 f"portcullis v{report.version} · {report.score_formula}</sub>")
+    lines.append(
+        f"<sub>target `{_cell(report.target)}` · generated {report.generated_at} · "
+        f"portcullis v{report.version} · {report.score_formula}</sub>"
+    )
     lines.append("")
 
     if not report.findings:
-        lines.append("✅ **No findings.** All discovered pipeline files parse cleanly "
-                     "and match no detection rule.")
+        lines.append(
+            "✅ **No findings.** All discovered pipeline files parse cleanly "
+            "and match no detection rule."
+        )
     else:
-        lines.append("| Priority | Rule | Location | Job | Severity | Confidence | Untrusted | Finding |")
+        lines.append(
+            "| Priority | Rule | Location | Job | Severity | Confidence | Untrusted | Finding |"
+        )
         lines.append("|---|---|---|---|---|---|---|---|")
         for f in report.findings[:_MAX_TABLE_ROWS]:
             sev = f.severity or f.base_severity

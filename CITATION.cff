@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+title: "Portcullis: a static security analyzer for CI/CD pipeline definitions"
+message: "If you use Portcullis in your research or tooling, please cite it."
+type: software
+authors:
+  - name: "Portcullis contributors"
+repository-code: "https://github.com/mk12002/Portcullis"
+url: "https://github.com/mk12002/Portcullis"
+abstract: >-
+  Portcullis is a static, offline security analyzer for CI/CD pipeline
+  definitions across GitHub Actions, GitLab CI, and Jenkins. It normalizes each
+  platform into a shared model and applies platform-agnostic detection rules for
+  dangerous triggers (pwn-requests), expression injection, action/image pinning,
+  token permissions, secret exposure, and step integrity. Its distinguishing
+  feature is trigger-context escalation: findings inside jobs reachable from an
+  untrusted trigger are ranked more severe, reserving the merge-blocking priority
+  for attacker-reachable criticals.
+keywords:
+  - security
+  - ci-cd
+  - github-actions
+  - gitlab-ci
+  - jenkins
+  - static-analysis
+  - supply-chain-security
+  - sarif
+license: Apache-2.0
+version: 0.1.0
+date-released: "2026-07-19"

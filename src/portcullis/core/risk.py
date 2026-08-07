@@ -37,9 +37,7 @@ SCORE_WEIGHTS: dict[Priority, int] = {
     Priority.P3: 1,
 }
 
-SCORE_FORMULA = (
-    "score = max(0, 100 - 30*|P0| - 15*|P1| - 5*|P2| - 1*|P3|); INFO findings excluded"
-)
+SCORE_FORMULA = "score = max(0, 100 - 30*|P0| - 15*|P1| - 5*|P2| - 1*|P3|); INFO findings excluded"
 
 
 def assess(findings: list[Finding]) -> list[Finding]:

@@ -128,16 +128,17 @@ portcullis version
 ## Project layout
 
 ```text
-portcullis/
+src/portcullis/          # src-layout package
   core/        models (normalized Pipeline), risk, taint, engine
   platforms/   github_actions, gitlab_ci, jenkins → one shared model
   rules/       R1–R6, written once against the model
   emitters/    json, html (self-contained), sarif, markdown
-tests/
-  fixtures/    inert-but-vulnerable + clean pipelines per platform
-  test_*.py    truth table, taint, determinism, emitters, CLI, inertness guard
-docs/
-  COMPARISON.md, sample-report/, images/, spec/
+  cli.py  logging_config.py  py.typed
+tests/         175 tests incl. truth table, determinism, inertness, SARIF-schema
+examples/      runnable example repos + Python API + CI-gate snippet
+docs/          MkDocs site + THREAT_MODEL, EVALUATION, COMPARISON, benchmarks, spec
+.github/       CI, CodeQL, release, docs workflows · issue/PR templates · Dependabot
+pyproject.toml  requirements.txt  mkdocs.yml
 ```
 
 ## Guarantees & limitations
@@ -152,7 +153,7 @@ The repo ships deliberately vulnerable fixtures: genuinely misconfigured (real i
 
 ## Contributing · Docs
 
-[docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) — add a platform (a parser) or a rule (one function) · [docs/COMPARISON.md](docs/COMPARISON.md) — landscape & prior art · [docs/EVALUATION.md](docs/EVALUATION.md) — real-world results · [docs/VISION.md](docs/VISION.md) — non-goals & roadmap · [docs/CHANGELOG.md](docs/CHANGELOG.md) · [docs/content/](docs/content/) — blog posts & launch kit · original build spec under [docs/spec/](docs/spec/).
+[CONTRIBUTING.md](CONTRIBUTING.md) — add a platform (a parser) or a rule (one function) · [docs/COMPARISON.md](docs/COMPARISON.md) — landscape & prior art · [docs/EVALUATION.md](docs/EVALUATION.md) — real-world results · [docs/VISION.md](docs/VISION.md) — non-goals & roadmap · [CHANGELOG.md](CHANGELOG.md) · [docs/content/](docs/content/) — blog posts & launch kit · original build spec under [docs/spec/](docs/spec/).
 
 ## License
 

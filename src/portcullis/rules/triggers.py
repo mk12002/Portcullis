@@ -159,9 +159,7 @@ def _check_github(pipeline: Pipeline) -> list[Finding]:
                         )
                     )
 
-    untrusted_input_present = bool(privileged) or any(
-        t.untrusted_input for t in pipeline.triggers
-    )
+    untrusted_input_present = bool(privileged) or any(t.untrusted_input for t in pipeline.triggers)
     if untrusted_input_present:
         for job in pipeline.jobs:
             for step in job.steps:
@@ -231,9 +229,7 @@ def _check_gitlab(pipeline: Pipeline) -> list[Finding]:
         if not job.reachable_from_untrusted:
             continue
         secretish = sorted(
-            k
-            for k in list(pipeline.env) + list(job.env)
-            if SECRETISH_NAME_RE.search(k)
+            k for k in list(pipeline.env) + list(job.env) if SECRETISH_NAME_RE.search(k)
         )
         if secretish:
             findings.append(

@@ -49,6 +49,7 @@ def _alias_bomb(levels: int, fan: int = 10) -> str:
 
 # --- YAML "billion laughs" alias-bomb DoS -------------------------------------
 
+
 def test_alias_bomb_is_refused_quickly():
     bomb = _alias_bomb(12)  # ~10^13 nodes if expanded
     t0 = time.time()
@@ -87,6 +88,7 @@ def test_anchors_without_expansion_still_parse():
 
 # --- oversized-file resource exhaustion ---------------------------------------
 
+
 def test_oversized_file_is_skipped_not_read(tmp_path):
     padding = "\n" + "#" + "x" * MAX_FILE_BYTES  # just over the cap
     _write(tmp_path, "on: push\njobs: {}\n" + padding)
@@ -96,13 +98,17 @@ def test_oversized_file_is_skipped_not_read(tmp_path):
 
 
 def test_normal_sized_file_scans(tmp_path):
-    _write(tmp_path, "on: push\npermissions: {contents: read}\njobs:\n  a:\n"
-                     "    runs-on: ubuntu-latest\n    steps:\n      - run: echo ok\n")
+    _write(
+        tmp_path,
+        "on: push\npermissions: {contents: read}\njobs:\n  a:\n"
+        "    runs-on: ubuntu-latest\n    steps:\n      - run: echo ok\n",
+    )
     report = scan(tmp_path, ScanConfig(), now=NOW)
     assert all(f.rule_id != "R0" for f in report.findings)
 
 
 # --- symlink traversal (out-of-tree file read) --------------------------------
+
 
 def test_symlinked_pipeline_file_is_not_followed(tmp_path):
     secret = tmp_path / "outside_secret.txt"
@@ -123,6 +129,7 @@ def test_symlinked_pipeline_file_is_not_followed(tmp_path):
 
 # --- deeply nested input degrades gracefully ----------------------------------
 
+
 def test_deeply_nested_yaml_does_not_crash(tmp_path):
     depth = 3000
     _write(tmp_path, "a: " + "[" * depth + "]" * depth)
@@ -132,6 +139,7 @@ def test_deeply_nested_yaml_does_not_crash(tmp_path):
 
 # --- stored XSS in the HTML report --------------------------------------------
 
+
 def _report_from(wf: str) -> Report:
     pipeline = GitHubActionsPlatform().parse(wf, WF)
     findings = []
@@ -139,9 +147,17 @@ def _report_from(wf: str) -> Report:
         findings += module.check(pipeline, ScanConfig())
     assess(findings)
     return Report(
-        tool="portcullis", version="0.1.0", target="t", generated_at="x",
-        platforms=["github"], files_scanned=[WF], skipped=[], findings=findings,
-        score=0, score_formula="f", priority_counts={"P0": 0, "P1": 0, "P2": 0, "P3": 0},
+        tool="portcullis",
+        version="0.1.0",
+        target="t",
+        generated_at="x",
+        platforms=["github"],
+        files_scanned=[WF],
+        skipped=[],
+        findings=findings,
+        score=0,
+        score_formula="f",
+        priority_counts={"P0": 0, "P1": 0, "P2": 0, "P3": 0},
     )
 
 
@@ -150,8 +166,8 @@ def test_html_report_escapes_injected_markup():
     wf = (
         "on: pull_request_target\npermissions: write-all\n"
         "jobs:\n  j:\n    runs-on: ubuntu-latest\n    steps:\n"
-        "      - run: echo \"<script>alert(1)</script><img src=x onerror=alert(2)>"
-        "${{ github.event.pull_request.title }}\"\n"
+        '      - run: echo "<script>alert(1)</script><img src=x onerror=alert(2)>'
+        '${{ github.event.pull_request.title }}"\n'
     )
     html = emit_html(_report_from(wf))
     # No raw executable markup survives — the tags are escaped to text.
@@ -161,8 +177,10 @@ def test_html_report_escapes_injected_markup():
 
 
 def test_html_report_has_restrictive_csp():
-    wf = ("on: push\npermissions: {contents: read}\njobs:\n  a:\n"
-          "    runs-on: ubuntu-latest\n    steps:\n      - run: echo ok\n")
+    wf = (
+        "on: push\npermissions: {contents: read}\njobs:\n  a:\n"
+        "    runs-on: ubuntu-latest\n    steps:\n      - run: echo ok\n"
+    )
     html = emit_html(_report_from(wf))
     assert "Content-Security-Policy" in html
     assert "default-src 'none'" in html

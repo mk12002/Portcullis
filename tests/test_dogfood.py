@@ -16,7 +16,5 @@ def test_own_workflows_pass_own_scan(tmp_path):
     report = scan(tmp_path, ScanConfig(), now="2026-01-01T00:00:00+00:00")
     assert report.files_scanned, "expected our own workflow files to be discovered"
     offending = [f for f in report.findings]
-    assert offending == [], [
-        (f.rule_id, f.kind, f.file_path, f.line, f.message) for f in offending
-    ]
+    assert offending == [], [(f.rule_id, f.kind, f.file_path, f.line, f.message) for f in offending]
     assert report.score == 100

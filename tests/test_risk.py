@@ -40,13 +40,17 @@ def assess_one(f: Finding, *others: Finding) -> Finding:
 
 
 def test_r2_injection_in_untrusted_job_is_p0_critical():
-    f = assess_one(make("R2", "expression-injection", Severity.HIGH, Confidence.HIGH, untrusted=True))
+    f = assess_one(
+        make("R2", "expression-injection", Severity.HIGH, Confidence.HIGH, untrusted=True)
+    )
     assert f.severity == Severity.CRITICAL and f.escalated
     assert f.priority == Priority.P0
 
 
 def test_r1_pwn_plus_r5_secret_is_p0_both():
-    r1 = make("R1", "pwn-request", Severity.HIGH, Confidence.HIGH, untrusted=True, escalatable=False)
+    r1 = make(
+        "R1", "pwn-request", Severity.HIGH, Confidence.HIGH, untrusted=True, escalatable=False
+    )
     r5 = make("R5", "secret-untrusted-context", Severity.MEDIUM, Confidence.MEDIUM, untrusted=True)
     risk.assess([r1, r5])
     assert r1.severity == Severity.CRITICAL and r1.priority == Priority.P0
@@ -67,8 +71,15 @@ def test_r2_injection_on_trusted_trigger_is_p1():
 
 def test_r1_dangerous_trigger_alone_is_p1_not_escalated():
     f = assess_one(
-        make("R1", "dangerous-trigger", Severity.HIGH, Confidence.MEDIUM, job=None,
-             untrusted=True, escalatable=False)
+        make(
+            "R1",
+            "dangerous-trigger",
+            Severity.HIGH,
+            Confidence.MEDIUM,
+            job=None,
+            untrusted=True,
+            escalatable=False,
+        )
     )
     assert f.severity == Severity.HIGH  # exempt from self-escalation
     assert f.priority == Priority.P1
@@ -131,7 +142,9 @@ def test_corroboration_on_untrusted_job_can_reach_p0():
 def test_low_confidence_finding_is_capped_at_p3():
     f = assess_one(make("R5", "plaintext-secret", Severity.MEDIUM, Confidence.LOW))
     assert f.priority == Priority.P3
-    g = assess_one(make("R2", "expression-injection", Severity.HIGH, Confidence.LOW, untrusted=True))
+    g = assess_one(
+        make("R2", "expression-injection", Severity.HIGH, Confidence.LOW, untrusted=True)
+    )
     assert g.priority == Priority.P3  # even escalated severity: surface, don't block
 
 

@@ -66,6 +66,7 @@ def test_credential_persistence_quiet_on_push_only(tmp_path):
 
 # --- R1 artifact-poisoning -----------------------------------------------------
 
+
 def test_artifact_poisoning_on_workflow_run(tmp_path):
     report = _scan(
         tmp_path,
@@ -103,6 +104,7 @@ jobs:
 
 # --- R2 env-injection ----------------------------------------------------------
 
+
 def test_env_injection_distinct_kind(tmp_path):
     report = _scan(
         tmp_path,
@@ -123,6 +125,7 @@ jobs:
 
 
 # --- R4 secrets-inherit --------------------------------------------------------
+
 
 def test_secrets_inherit_flagged(tmp_path):
     report = _scan(
@@ -158,6 +161,7 @@ jobs:
 
 # --- R6 unsecure-commands ------------------------------------------------------
 
+
 def test_unsecure_commands_flagged(tmp_path):
     report = _scan(
         tmp_path,
@@ -179,6 +183,7 @@ jobs:
 
 
 # --- plaintext-secret precision (real-world FP reduction) ----------------------
+
 
 def test_non_secret_keys_not_flagged_as_plaintext(tmp_path):
     # Mirrors real-world FPs found on actions/runner + fastapi: high-entropy
@@ -225,6 +230,7 @@ jobs:
 
 
 # --- inline suppressions -------------------------------------------------------
+
 
 def test_trailing_comment_suppresses_specific_rule(tmp_path):
     report = _scan(

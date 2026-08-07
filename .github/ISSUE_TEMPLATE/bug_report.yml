@@ -1,0 +1,51 @@
+name: Bug report
+description: Report incorrect behavior, a crash, or a false positive/negative
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! For **security vulnerabilities in Portcullis itself**,
+        do not use this form — follow [SECURITY.md](../blob/main/SECURITY.md).
+  - type: input
+    id: version
+    attributes:
+      label: Portcullis version
+      description: Output of `portcullis version`
+      placeholder: portcullis 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: What kind of issue is this?
+      options:
+        - Crash / unhandled error
+        - False positive (flagged something safe)
+        - False negative (missed something dangerous)
+        - Wrong severity / priority / score
+        - Output format problem (JSON/HTML/SARIF/Markdown)
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: >
+        A minimal, **inert** pipeline snippet (harmless `echo` payloads,
+        `example.com` URLs, obviously-fake secrets) and the exact command you ran.
+      render: yaml
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual behavior
+    validations:
+      required: true
+  - type: input
+    id: platform
+    attributes:
+      label: Platform & Python
+      placeholder: "Ubuntu 24.04, Python 3.12"

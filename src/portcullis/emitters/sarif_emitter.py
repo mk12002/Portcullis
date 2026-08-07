@@ -8,7 +8,9 @@ from portcullis import TOOL_NAME, __version__
 from portcullis.core.models import Report, Severity
 from portcullis.rules import all_rule_metas
 
-SARIF_SCHEMA = "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json"
+SARIF_SCHEMA = (
+    "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json"
+)
 
 _LEVELS = {
     Severity.CRITICAL: "error",

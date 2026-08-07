@@ -76,9 +76,7 @@ JENKINS_UNTRUSTED_ENV: tuple[str, ...] = (
     "BRANCH_NAME",
 )
 
-JENKINS_INTERP_RE = re.compile(
-    r"\$\{?\s*(?:env\.|params\.)?([A-Za-z_][A-Za-z0-9_]*)"
-)
+JENKINS_INTERP_RE = re.compile(r"\$\{?\s*(?:env\.|params\.)?([A-Za-z_][A-Za-z0-9_]*)")
 
 
 @dataclass(frozen=True)

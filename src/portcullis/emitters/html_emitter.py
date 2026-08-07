@@ -76,13 +76,12 @@ def _esc(value: object) -> str:
 
 def _headline(report: Report) -> str:
     if not report.findings:
-        return "No findings. All discovered pipeline files parse cleanly and match no detection rule."
+        return (
+            "No findings. All discovered pipeline files parse cleanly and match no detection rule."
+        )
     top = report.findings[0]
     if top.priority == Priority.P0:
-        return (
-            f"{report.priority_counts['P0']} finding(s) at P0 — most urgent: "
-            f"{top.message}"
-        )
+        return f"{report.priority_counts['P0']} finding(s) at P0 — most urgent: {top.message}"
     return f"Most urgent finding ({top.priority.name if top.priority is not None else '—'}): {top.message}"
 
 
@@ -90,43 +89,47 @@ def emit_html(report: Report) -> str:
     counts = report.priority_counts
     parts: list[str] = []
     parts.append(
-        "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\">"
-        "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">"
+        '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">'
         # Defense-in-depth: all finding evidence is HTML-escaped, but the report
         # is built from untrusted pipeline content, so a strict CSP forbids any
         # script execution and any network request. The report is fully
         # self-contained (inline CSS only), so this never breaks rendering.
-        "<meta http-equiv=\"Content-Security-Policy\" content=\""
+        '<meta http-equiv="Content-Security-Policy" content="'
         "default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'\">"
         f"<title>Portcullis report — {_esc(report.target)}</title>"
-        f"<style>{_CSS}</style></head><body><div class=\"wrap\">"
+        f'<style>{_CSS}</style></head><body><div class="wrap">'
     )
     parts.append(
         f"<header><h1>Portcullis — pipeline security report</h1>"
-        f"<div class=\"meta\">target: <code>{_esc(report.target)}</code> · "
+        f'<div class="meta">target: <code>{_esc(report.target)}</code> · '
         f"generated: {_esc(report.generated_at)} · portcullis v{_esc(report.version)} · "
         f"platforms: {_esc(', '.join(report.platforms) or 'none detected')} · "
         f"files scanned: {len(report.files_scanned)}</div></header>"
     )
 
     pills = "".join(
-        f"<span class=\"pill bg-{p}\">{p}: {counts[p]}</span>" for p in ("P0", "P1", "P2", "P3")
+        f'<span class="pill bg-{p}">{p}: {counts[p]}</span>' for p in ("P0", "P1", "P2", "P3")
     )
     parts.append(
-        "<div class=\"band\">"
-        f"<div class=\"card score\"><div class=\"num\">{report.score}<span style=\"font-size:18px;color:var(--muted)\">/100</span></div>"
+        '<div class="band">'
+        f'<div class="card score"><div class="num">{report.score}<span style="font-size:18px;color:var(--muted)">/100</span></div>'
         "<div>pipeline security score</div>"
-        f"<div class=\"formula\">{_esc(report.score_formula)}</div></div>"
-        f"<div class=\"card headline\"><div class=\"counts\">{pills}</div>"
-        f"<p class=\"lead\">{_esc(_headline(report))}</p></div></div>"
+        f'<div class="formula">{_esc(report.score_formula)}</div></div>'
+        f'<div class="card headline"><div class="counts">{pills}</div>'
+        f'<p class="lead">{_esc(_headline(report))}</p></div></div>'
     )
 
     # Priority table
-    parts.append("<h2>Findings overview</h2><div class=\"scroll\"><table><thead><tr>"
-                 "<th>Priority</th><th>Rule</th><th>File</th><th>Job</th><th>Severity</th>"
-                 "<th>Confidence</th><th>Untrusted-reachable</th><th>Finding</th></tr></thead><tbody>")
+    parts.append(
+        '<h2>Findings overview</h2><div class="scroll"><table><thead><tr>'
+        "<th>Priority</th><th>Rule</th><th>File</th><th>Job</th><th>Severity</th>"
+        "<th>Confidence</th><th>Untrusted-reachable</th><th>Finding</th></tr></thead><tbody>"
+    )
     if not report.findings:
-        parts.append("<tr><td colspan=\"8\"><span class=\"pill bg-OK\">clean</span> no findings</td></tr>")
+        parts.append(
+            '<tr><td colspan="8"><span class="pill bg-OK">clean</span> no findings</td></tr>'
+        )
     for f in report.findings:
         sev = f.severity or f.base_severity
         pr_name = f.priority.name if f.priority is not None else "P3"
@@ -134,12 +137,12 @@ def emit_html(report: Report) -> str:
         reach = '<span class="flag">YES</span>' if f.untrusted_reachable else "no"
         parts.append(
             "<tr>"
-            f"<td><span class=\"pill bg-{pr_name}\">{pr_name}</span></td>"
-            f"<td>{_esc(f.rule_id)}<br><span style=\"color:var(--muted);font-size:11px\">{_esc(f.kind)}</span></td>"
+            f'<td><span class="pill bg-{pr_name}">{pr_name}</span></td>'
+            f'<td>{_esc(f.rule_id)}<br><span style="color:var(--muted);font-size:11px">{_esc(f.kind)}</span></td>'
             f"<td><code>{_esc(f.file_path)}:{f.line}</code></td>"
             f"<td>{_esc(f.job_name or '—')}</td>"
             f"<td>{_esc(sev.name)}{esc_marker}</td>"
-            f"<td class=\"conf-{f.confidence.name}\">{_esc(f.confidence.name)}</td>"
+            f'<td class="conf-{f.confidence.name}">{_esc(f.confidence.name)}</td>'
             f"<td>{reach}</td>"
             f"<td>{_esc(f.message)}</td></tr>"
         )
@@ -149,8 +152,10 @@ def emit_html(report: Report) -> str:
     by_file: dict[str, list[Finding]] = defaultdict(list)
     for f in report.findings:
         by_file[f.file_path].append(f)
-    parts.append("<h2>Per-file breakdown</h2><div class=\"scroll\"><table><thead><tr>"
-                 "<th>File</th><th>P0</th><th>P1</th><th>P2</th><th>P3</th></tr></thead><tbody>")
+    parts.append(
+        '<h2>Per-file breakdown</h2><div class="scroll"><table><thead><tr>'
+        "<th>File</th><th>P0</th><th>P1</th><th>P2</th><th>P3</th></tr></thead><tbody>"
+    )
     for path in report.files_scanned:
         fs = by_file.get(path, [])
         row = {
@@ -167,28 +172,28 @@ def emit_html(report: Report) -> str:
     # Full findings
     parts.append("<h2>Full findings</h2>")
     if not report.findings:
-        parts.append("<p><span class=\"pill bg-OK\">clean</span> Nothing to remediate.</p>")
+        parts.append('<p><span class="pill bg-OK">clean</span> Nothing to remediate.</p>')
     for f in report.findings:
         sev = f.severity or f.base_severity
         pr = f.priority.name if f.priority is not None else "P3"
         escalation_note = (
-            " <span class=\"flag\">(escalated: job reachable from an untrusted trigger)</span>"
+            ' <span class="flag">(escalated: job reachable from an untrusted trigger)</span>'
             if f.escalated
             else ""
         )
         parts.append(
-            f"<div class=\"finding {pr}\">"
-            f"<div><span class=\"pill bg-{pr}\">{pr}</span> "
+            f'<div class="finding {pr}">'
+            f'<div><span class="pill bg-{pr}">{pr}</span> '
             f"<b>{_esc(f.rule_id)} · {_esc(f.kind)}</b> — {_esc(sev.name)} severity, "
-            f"<span class=\"conf-{f.confidence.name}\">{_esc(f.confidence.name)} confidence</span>"
+            f'<span class="conf-{f.confidence.name}">{_esc(f.confidence.name)} confidence</span>'
             f"{escalation_note}</div>"
-            f"<div class=\"loc\">{_esc(f.file_path)}:{f.line}"
+            f'<div class="loc">{_esc(f.file_path)}:{f.line}'
             + (f" · {_esc(f.key_path)}" if f.key_path else "")
             + (f" · job <b>{_esc(f.job_name)}</b>" if f.job_name else "")
             + "</div>"
             f"<p>{_esc(f.message)}</p>"
-            + (f"<div class=\"evidence\">{_esc(f.evidence)}</div>" if f.evidence else "")
-            + f"<p class=\"rem\"><b>Remediation:</b> {_esc(f.remediation)}</p></div>"
+            + (f'<div class="evidence">{_esc(f.evidence)}</div>' if f.evidence else "")
+            + f'<p class="rem"><b>Remediation:</b> {_esc(f.remediation)}</p></div>'
         )
 
     if report.skipped or report.suppressed:

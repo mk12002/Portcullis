@@ -1,0 +1,10 @@
+# Runtime dependencies for Portcullis.
+#
+# The canonical source of truth is pyproject.toml; this file mirrors the
+# runtime dependencies for tooling that expects a requirements.txt.
+# Install the project itself with:  pip install .    (or  pip install -e .)
+#
+# Portcullis is stdlib-first: this is the ONLY runtime dependency. ruamel.yaml
+# is chosen over PyYAML because its round-trip loader preserves line/column
+# numbers, which the finding-traceability model requires.
+ruamel.yaml>=0.18,<0.19

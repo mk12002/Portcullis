@@ -1,0 +1,39 @@
+# Release — build and publish to PyPI on a version tag.
+# Uses only SHA-pinned first-party actions; publishing is done with `twine`
+# via run: steps so no extra third-party action is introduced. Configure a
+# PYPI_API_TOKEN secret (or switch to PyPI Trusted Publishing / OIDC).
+name: release
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write # to create the GitHub release with `gh`
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c # v5.0.0
+        with:
+          python-version: "3.12"
+      - name: build + verify
+        run: |
+          python -m pip install build twine
+          python -m build
+          python -m twine check dist/*
+      - name: publish to PyPI
+        if: ${{ env.PYPI_API_TOKEN != '' }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+          PYPI_API_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        run: python -m twine upload dist/*
+      - name: create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: gh release create "$TAG" dist/* --title "$TAG" --generate-notes

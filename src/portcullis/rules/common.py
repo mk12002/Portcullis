@@ -47,9 +47,7 @@ def looks_high_entropy(value: str) -> bool:
     if any(c in v for c in ("/", ",", "://", "\\")):
         return False
     classes = sum(
-        1
-        for pattern in (r"[a-z]", r"[A-Z]", r"[0-9]", r"[^A-Za-z0-9]")
-        if re.search(pattern, v)
+        1 for pattern in (r"[a-z]", r"[A-Z]", r"[0-9]", r"[^A-Za-z0-9]") if re.search(pattern, v)
     )
     return classes >= 3 and shannon_entropy(v) >= 3.5
 

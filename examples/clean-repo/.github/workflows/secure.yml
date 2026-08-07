@@ -1,0 +1,23 @@
+# CLEAN EXAMPLE — the same triage task done securely. Scores 100/100.
+#   - unprivileged `pull_request` trigger (no secrets given to fork code)
+#   - explicit least-privilege permissions
+#   - SHA-pinned action (placeholder 40-hex SHA for the example)
+#   - untrusted PR title routed through env: and referenced as a quoted var
+name: triage
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@0000000000000000000000000000000000000001 # v4 (example SHA)
+        with:
+          persist-credentials: false # don't leave the token in .git config
+      - name: greet (safe — value passed as data via env)
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: echo "Thanks for PR $PR_TITLE"

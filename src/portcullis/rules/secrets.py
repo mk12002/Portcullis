@@ -167,9 +167,7 @@ def _github_job(pipeline: Pipeline, job: Job) -> list[Finding]:
 def _shell_echo_job(pipeline: Pipeline, job: Job) -> list[Finding]:
     """GitLab/Jenkins: echo of credential-looking shell variables."""
     findings: list[Finding] = []
-    credential_vars = {
-        k for k, v in pipeline.env.items() if str(v).startswith("credentials(")
-    }
+    credential_vars = {k for k, v in pipeline.env.items() if str(v).startswith("credentials(")}
     for step in job.steps:
         for line_no, text in step.run_lines():
             if not ECHO_RE.match(text.strip()):

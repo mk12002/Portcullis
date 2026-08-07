@@ -31,15 +31,25 @@ dependencies = ["ruamel.yaml>=0.18,<0.19"]
 # SARIF 2.1.0 schema in the test suite. It is never imported by the tool itself
 # (the offline, stdlib-first runtime keeps its single dependency, ruamel.yaml).
 dev = ["pytest>=8.0", "pytest-cov>=5.0", "ruff>=0.4", "mypy>=1.10", "jsonschema>=4.0"]
+# Documentation site (MkDocs Material). Installed only when building the docs.
+docs = ["mkdocs>=1.6", "mkdocs-material>=9.5"]
 
 [project.scripts]
 portcullis = "portcullis.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/portcullis-scanner/portcullis"
+Homepage = "https://github.com/mk12002/Portcullis"
+Repository = "https://github.com/mk12002/Portcullis"
+Documentation = "https://github.com/mk12002/Portcullis/tree/main/docs"
+Changelog = "https://github.com/mk12002/Portcullis/blob/main/docs/CHANGELOG.md"
+Issues = "https://github.com/mk12002/Portcullis/issues"
 
 [tool.setuptools.packages.find]
+where = ["src"]
 include = ["portcullis*"]
+
+[tool.setuptools.package-data]
+portcullis = ["py.typed"]
 
 [tool.ruff]
 line-length = 100

@@ -67,7 +67,11 @@ def check(pipeline: Pipeline, config: ScanConfig) -> list[Finding]:
             if uses.is_sha_pinned:
                 continue
             first_party = _is_first_party(uses.raw, config)
-            ref_desc = f"@{uses.version}" if uses.version else "no version (defaults to the default branch)"
+            ref_desc = (
+                f"@{uses.version}"
+                if uses.version
+                else "no version (defaults to the default branch)"
+            )
             findings.append(
                 Finding(
                     rule_id="R3",

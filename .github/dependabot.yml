@@ -1,0 +1,18 @@
+# Dependabot keeps dependencies and SHA-pinned GitHub Actions up to date.
+# For Actions it proposes SHA bumps with the version in a comment — exactly the
+# "pin to SHA + update via a bot" practice Portcullis's R3 recommends.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels: ["dependencies"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "ci"]

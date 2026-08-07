@@ -9,8 +9,15 @@ from portcullis.core.models import Step
 
 
 def step_with_run(run: str, env: dict | None = None, shell: str | None = None) -> Step:
-    return Step(name="s", line=10, key_path="jobs.j.steps[0]", run=run, run_line=10,
-                env=env or {}, shell=shell)
+    return Step(
+        name="s",
+        line=10,
+        key_path="jobs.j.steps[0]",
+        run=run,
+        run_line=10,
+        env=env or {},
+        shell=shell,
+    )
 
 
 @pytest.mark.parametrize(
@@ -37,8 +44,15 @@ def test_untrusted_sources_classified(expr):
 
 @pytest.mark.parametrize(
     "expr",
-    ["github.sha", "github.repository", "github.actor", "github.run_id",
-     "matrix.python", "secrets.MY_TOKEN", "github.event_name"],
+    [
+        "github.sha",
+        "github.repository",
+        "github.actor",
+        "github.run_id",
+        "matrix.python",
+        "secrets.MY_TOKEN",
+        "github.event_name",
+    ],
 )
 def test_trusted_context_not_flagged(expr):
     assert not taint.is_github_untrusted(expr)
@@ -59,9 +73,7 @@ def test_same_source_via_env_is_safe():
 
 
 def test_multiline_run_line_offsets():
-    step = step_with_run(
-        'echo start\necho "${{ github.event.pull_request.title }}"\necho done'
-    )
+    step = step_with_run('echo start\necho "${{ github.event.pull_request.title }}"\necho done')
     hits = taint.github_run_sinks(step)
     assert len(hits) == 1
     assert hits[0].line == 12  # block content starts at run_line + 1

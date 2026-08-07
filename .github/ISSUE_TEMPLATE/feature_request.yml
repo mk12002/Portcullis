@@ -1,0 +1,37 @@
+name: Feature request
+description: Propose a new detection rule, a new platform, or an enhancement
+labels: ["enhancement"]
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: What are you proposing?
+      options:
+        - New detection rule
+        - New platform (e.g. Azure Pipelines, CircleCI)
+        - New output format / emitter
+        - CLI / usability improvement
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem / threat
+      description: >
+        What misconfiguration or gap does this address? For a new rule, describe
+        the attack it catches and why it matters (which of secrets / write-access
+        / untrusted-input is misplaced).
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Example
+      description: An inert example pipeline that should (or shouldn't) be flagged.
+      render: yaml
+  - type: textarea
+    id: fp
+    attributes:
+      label: False-positive considerations
+      description: When would this fire but the situation actually be fine? (Every rule needs an honest FP note.)

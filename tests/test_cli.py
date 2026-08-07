@@ -42,8 +42,17 @@ def test_scan_all_formats_written(tmp_path, capsys):
 
 def test_fail_on_p0_trips_on_vulnerable(tmp_path, capsys):
     code, _, err = run(
-        ["scan", str(FIXTURES / "github"), "--format", "json", "--out", str(tmp_path),
-         "--fail-on", "P0"], capsys
+        [
+            "scan",
+            str(FIXTURES / "github"),
+            "--format",
+            "json",
+            "--out",
+            str(tmp_path),
+            "--fail-on",
+            "P0",
+        ],
+        capsys,
     )
     assert code == 1
     assert "failing" in err
@@ -51,8 +60,17 @@ def test_fail_on_p0_trips_on_vulnerable(tmp_path, capsys):
 
 def test_fail_on_p0_passes_on_clean(tmp_path, capsys):
     code, _, _ = run(
-        ["scan", str(FIXTURES / "clean"), "--format", "json", "--out", str(tmp_path),
-         "--fail-on", "P3"], capsys
+        [
+            "scan",
+            str(FIXTURES / "clean"),
+            "--format",
+            "json",
+            "--out",
+            str(tmp_path),
+            "--fail-on",
+            "P3",
+        ],
+        capsys,
     )
     assert code == 0
 
@@ -61,16 +79,36 @@ def test_fail_on_threshold_ordering(tmp_path, capsys):
     # push-injection alone has a P1 top finding: P0 gate passes, P1 gate fails.
     # Build an isolated dir via --platforms filtering instead: use gitlab fixture P0.
     code_p0, _, _ = run(
-        ["scan", str(FIXTURES / "gitlab"), "--out", str(tmp_path), "--format", "json",
-         "--fail-on", "P0", "--quiet"], capsys
+        [
+            "scan",
+            str(FIXTURES / "gitlab"),
+            "--out",
+            str(tmp_path),
+            "--format",
+            "json",
+            "--fail-on",
+            "P0",
+            "--quiet",
+        ],
+        capsys,
     )
     assert code_p0 == 1
 
 
 def test_platforms_filter(tmp_path, capsys):
     code, _, _ = run(
-        ["scan", str(FIXTURES / "github"), "--platforms", "gitlab", "--format", "json",
-         "--out", str(tmp_path), "--quiet"], capsys
+        [
+            "scan",
+            str(FIXTURES / "github"),
+            "--platforms",
+            "gitlab",
+            "--format",
+            "json",
+            "--out",
+            str(tmp_path),
+            "--quiet",
+        ],
+        capsys,
     )
     assert code == 0
     data = json.loads((tmp_path / "report.json").read_text(encoding="utf-8"))
@@ -80,8 +118,18 @@ def test_platforms_filter(tmp_path, capsys):
 
 def test_trusted_actions_flag(tmp_path, capsys):
     code, _, _ = run(
-        ["scan", str(FIXTURES / "github"), "--trusted-actions", "example-org/",
-         "--format", "json", "--out", str(tmp_path), "--quiet"], capsys
+        [
+            "scan",
+            str(FIXTURES / "github"),
+            "--trusted-actions",
+            "example-org/",
+            "--format",
+            "json",
+            "--out",
+            str(tmp_path),
+            "--quiet",
+        ],
+        capsys,
     )
     assert code == 0
     data = json.loads((tmp_path / "report.json").read_text(encoding="utf-8"))
@@ -101,8 +149,17 @@ def test_malformed_file_warns_low_finding_never_crashes(tmp_path, capsys):
     assert parse_findings and parse_findings[0]["severity"] == "LOW"
     # and the LOW finding is gateable at P3
     code2 = main(
-        ["scan", str(FIXTURES / "malformed"), "--format", "json", "--out", str(tmp_path),
-         "--fail-on", "P3", "--quiet"]
+        [
+            "scan",
+            str(FIXTURES / "malformed"),
+            "--format",
+            "json",
+            "--out",
+            str(tmp_path),
+            "--fail-on",
+            "P3",
+            "--quiet",
+        ]
     )
     assert code2 == 1
 
@@ -116,8 +173,8 @@ def test_bad_platform_and_bad_path_exit_2(tmp_path, capsys):
 
 def test_quiet_suppresses_summary(tmp_path, capsys):
     code, out, _ = run(
-        ["scan", str(FIXTURES / "clean"), "--format", "json", "--out", str(tmp_path),
-         "--quiet"], capsys
+        ["scan", str(FIXTURES / "clean"), "--format", "json", "--out", str(tmp_path), "--quiet"],
+        capsys,
     )
     assert code == 0 and out == ""
 
@@ -131,8 +188,8 @@ def test_no_command_prints_help(capsys):
 @pytest.mark.parametrize("fmt", ["json", "html", "sarif", "md"])
 def test_single_format_writes_only_that_file(fmt, tmp_path, capsys):
     code, _, _ = run(
-        ["scan", str(FIXTURES / "clean"), "--format", fmt, "--out", str(tmp_path),
-         "--quiet"], capsys
+        ["scan", str(FIXTURES / "clean"), "--format", fmt, "--out", str(tmp_path), "--quiet"],
+        capsys,
     )
     assert code == 0
     files = {p.name for p in tmp_path.iterdir()}

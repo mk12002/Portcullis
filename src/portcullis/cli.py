@@ -2,7 +2,7 @@
 
     portcullis scan <path> [--format json|html|sarif|md|all] [--out DIR]
                            [--fail-on P0|P1|P2|P3] [--platforms LIST]
-                           [--trusted-actions PREFIX]... [--quiet]
+                           [--trusted-actions PREFIX]... [--quiet] [-v]
     portcullis rules list
     portcullis version
 
@@ -20,7 +20,10 @@ from portcullis import TOOL_NAME, __version__
 from portcullis.core.engine import scan
 from portcullis.core.models import Priority, ScanConfig, Severity
 from portcullis.emitters import EMITTERS
+from portcullis.logging_config import configure_logging, get_logger
 from portcullis.rules import all_rule_metas
+
+logger = get_logger(__name__)
 
 VALID_PLATFORMS = {"github", "gitlab", "jenkins"}
 
@@ -41,7 +44,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="report format; md is a PR-comment-sized summary (default: html)",
     )
     p_scan.add_argument(
-        "--out", default="./portcullis-report", help="output directory (default: ./portcullis-report)"
+        "--out",
+        default="./portcullis-report",
+        help="output directory (default: ./portcullis-report)",
     )
     p_scan.add_argument(
         "--fail-on",
@@ -62,6 +67,13 @@ def build_parser() -> argparse.ArgumentParser:
         help="treat uses: references with this prefix as first-party (repeatable)",
     )
     p_scan.add_argument("--quiet", action="store_true", help="suppress the console summary")
+    p_scan.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        default=0,
+        help="increase log verbosity (-v = info, -vv = debug); logs go to stderr",
+    )
 
     p_rules = sub.add_parser("rules", help="rule catalog")
     p_rules.add_argument("action", choices=["list"], help="list all rules")
@@ -71,6 +83,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def cmd_scan(args: argparse.Namespace) -> int:
+    configure_logging(verbosity=args.verbose, quiet=args.quiet)
     platforms = frozenset(p.strip() for p in args.platforms.split(",") if p.strip())
     unknown = platforms - VALID_PLATFORMS
     if unknown:
@@ -96,19 +109,26 @@ def cmd_scan(args: argparse.Namespace) -> int:
         path = out_dir / f"report.{fmt}"
         path.write_text(EMITTERS[fmt](report), encoding="utf-8", newline="\n")
         written.append(path)
+    logger.info(
+        "wrote %d report(s) to %s (score=%d, findings=%d)",
+        len(written),
+        out_dir,
+        report.score,
+        len(report.findings),
+    )
 
     if not args.quiet:
         counts = report.priority_counts
-        print(f"portcullis v{__version__} — scanned {len(report.files_scanned)} pipeline file(s)")
+        print(f"portcullis v{__version__} - scanned {len(report.files_scanned)} pipeline file(s)")
         print(
-            f"score: {report.score}/100 · "
+            f"score: {report.score}/100 | "
             + " ".join(f"{p}:{counts[p]}" for p in ("P0", "P1", "P2", "P3"))
         )
         if report.findings:
             top = report.findings[0]
             sev = top.severity or top.base_severity
             print(
-                f"top finding: [{top.priority.name if top.priority is not None else '—'}/{sev.name}] "
+                f"top finding: [{top.priority.name if top.priority is not None else '-'}/{sev.name}] "
                 f"{top.rule_id} {top.kind} at {top.file_path}:{top.line}"
             )
         for entry in report.skipped:
@@ -121,14 +141,12 @@ def cmd_scan(args: argparse.Namespace) -> int:
         tripped = [
             f
             for f in report.findings
-            if f.priority is not None
-            and f.priority <= threshold
-            and f.severity != Severity.INFO
+            if f.priority is not None and f.priority <= threshold and f.severity != Severity.INFO
         ]
         if tripped:
             if not args.quiet:
                 print(
-                    f"gate: {len(tripped)} finding(s) at or above {threshold.name} — failing",
+                    f"gate: {len(tripped)} finding(s) at or above {threshold.name} - failing",
                     file=sys.stderr,
                 )
             return 1

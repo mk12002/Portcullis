@@ -1,0 +1,29 @@
+# INERT-BUT-VULNERABLE EXAMPLE — for demonstrating Portcullis, not for real use.
+# Genuinely misconfigured (pwn-request + expression injection + write-all), but
+# every payload is a harmless echo and every secret name is obviously fake.
+#
+# Portcullis flags, among others:
+#   R1 pwn-request       — pull_request_target + checkout of PR-head code
+#   R2 expression-injection — PR title interpolated into a run script (→ CRITICAL/P0)
+#   R4 write-all         — over-broad token
+#   R5 secret-echoed     — secret written to the job log
+#   R3 unpinned-third-party — third-party action on a mutable tag
+name: triage
+on:
+  pull_request_target:
+
+permissions: write-all
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}   # checks out attacker code
+      - name: greet (expression injection; inert echo)
+        run: echo "Thanks for PR ${{ github.event.pull_request.title }}"
+      - name: notify (echoes a fake secret)
+        run: echo "posting with ${{ secrets.EXAMPLE_FAKE_WEBHOOK }}"
+      - name: lint (third-party action on a mutable tag)
+        uses: example-org/pr-linter@v1

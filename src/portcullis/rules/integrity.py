@@ -40,9 +40,7 @@ PIPE_TO_SHELL_RE = re.compile(
     r"\b(?:curl|wget)\b[^|\n;&]*\|\s*(?:sudo\s+)?(?:env\s+\S+\s+)?(?:bash|sh|zsh|python3?|perl|ruby|node)\b"
 )
 DOWNLOAD_RE = re.compile(r"\b(?:curl|wget)\b[^\n]*?(https?://[^\s'\"]+)")
-CHECKSUM_RE = re.compile(
-    r"sha(?:1|256|512)sum|shasum|gpg\s+--verify|cosign|minisign|--checksum"
-)
+CHECKSUM_RE = re.compile(r"sha(?:1|256|512)sum|shasum|gpg\s+--verify|cosign|minisign|--checksum")
 
 
 UNSECURE_COMMANDS_KEY = "ACTIONS_ALLOW_UNSECURE_COMMANDS"
@@ -60,13 +58,18 @@ def check(pipeline: Pipeline, config: ScanConfig) -> list[Finding]:
     ]
     for job in pipeline.jobs:
         env_scopes.append(
-            (job.env, f"{job.key_path}.env", job.line, job.name, None,
-             job.reachable_from_untrusted)
+            (job.env, f"{job.key_path}.env", job.line, job.name, None, job.reachable_from_untrusted)
         )
         for step in job.steps:
             env_scopes.append(
-                (step.env, f"{step.key_path}.env", step.line, job.name, step.name,
-                 job.reachable_from_untrusted)
+                (
+                    step.env,
+                    f"{step.key_path}.env",
+                    step.line,
+                    job.name,
+                    step.name,
+                    job.reachable_from_untrusted,
+                )
             )
     for env, key_path, line, job_name, step_name, reachable in env_scopes:
         if UNSECURE_COMMANDS_KEY in env and _truthy(env[UNSECURE_COMMANDS_KEY]):
@@ -112,11 +115,7 @@ def check(pipeline: Pipeline, config: ScanConfig) -> list[Finding]:
                             message=(
                                 f"Step '{step.name}' pipes a remote download "
                                 "directly into an interpreter"
-                                + (
-                                    " over plaintext HTTP"
-                                    if insecure_transport
-                                    else ""
-                                )
+                                + (" over plaintext HTTP" if insecure_transport else "")
                                 + " — the pipeline executes whatever the remote "
                                 "host serves, unverified."
                             ),
@@ -130,9 +129,7 @@ def check(pipeline: Pipeline, config: ScanConfig) -> list[Finding]:
                             key_path=step.key_path,
                             job_name=job.name,
                             step_name=step.name,
-                            base_severity=Severity.HIGH
-                            if insecure_transport
-                            else Severity.MEDIUM,
+                            base_severity=Severity.HIGH if insecure_transport else Severity.MEDIUM,
                             confidence=capped_confidence(pipeline, Confidence.HIGH),
                             evidence=text.strip(),
                             untrusted_reachable=job.reachable_from_untrusted,

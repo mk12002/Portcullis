@@ -55,9 +55,7 @@ def test_p0_renders_as_p0_not_falsy_fallback():
     html = emit_html(report)
     assert 'class="pill bg-P0">P0' in html
     sarif = json.loads(emit_sarif(report))
-    assert any(
-        r["properties"]["priority"] == "P0" for r in sarif["runs"][0]["results"]
-    )
+    assert any(r["properties"]["priority"] == "P0" for r in sarif["runs"][0]["results"])
 
 
 def test_secret_value_redacted_in_all_formats():
