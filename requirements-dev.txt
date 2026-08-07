@@ -9,6 +9,6 @@ ruff>=0.4
 mypy>=1.10
 jsonschema>=4.0        # dev-only: validates SARIF output against the 2.1.0 schema
 build>=1.0             # python -m build
-twine>=5.0             # package metadata check / publish
+twine>=7.0.0             # package metadata check / publish
 mkdocs>=1.6            # docs site
 mkdocs-material>=9.5
