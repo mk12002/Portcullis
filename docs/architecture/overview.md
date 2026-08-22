@@ -5,7 +5,7 @@ Portcullis is a pipeline of five stages: **discover → parse → normalize → 
 its format into one shared structure, so detection rules are written once and
 apply to all platforms.
 
-![Architecture](images/architecture.svg)
+![Architecture](../images/architecture.svg)
 
 ## The normalized model (parse once, rule once)
 
@@ -58,4 +58,4 @@ score = max(0, 100 − 30·|P0| − 15·|P1| − 5·|P2| − 1·|P3|)
 Static-only (never executes pipeline content) · offline (no network at scan
 time) · deterministic output · warn-and-continue (one bad file never aborts a
 scan) · hardened against alias bombs, oversized files, symlink traversal, and
-report XSS. See the [Threat Model](THREAT_MODEL.md).
+report XSS. See the [Threat Model](../threat-model/overview.md).

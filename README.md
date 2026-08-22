@@ -9,7 +9,10 @@
 [![python](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)](pyproject.toml)
 [![license](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
 [![sarif](https://img.shields.io/badge/output-JSON%20·%20HTML%20·%20SARIF%20·%20MD-4f8cc9)](#outputs)
-[![offline](https://img.shields.io/badge/scan-100%25%20offline-46a758)](docs/THREAT_MODEL.md)
+[![offline](https://img.shields.io/badge/scan-100%25%20offline-46a758)](docs/threat-model/overview.md)
+<!-- DOI badge: replace after your first Zenodo-archived release — see RELEASING.md
+[![DOI](https://zenodo.org/badge/DOICODE.svg)](https://doi.org/10.5281/zenodo.XXXXXXX) -->
+[![OWASP CI/CD](https://img.shields.io/badge/OWASP-CI%2FCD%20Top%2010%20mapped-000?logo=owasp)](docs/methodology/owasp-mapping.md)
 
 </div>
 
@@ -23,7 +26,7 @@ Portcullis detects those misconfigurations statically, and — unlike a linter �
 
 ## Why another scanner?
 
-Excellent tools exist ([zizmor](https://docs.zizmor.sh/), [poutine](https://github.com/boostsecurityio/poutine), [actionlint](https://github.com/rhysd/actionlint), the [ARGUS](https://www.usenix.org/conference/usenixsecurity23/presentation/muralee) research) — and a [2026 comparative study](https://arxiv.org/html/2601.14455v2) of nine of them found *no single scanner covers all weakness categories*. Portcullis's angle, in full honesty against that landscape ([detailed comparison](docs/COMPARISON.md)):
+Excellent tools exist ([zizmor](https://docs.zizmor.sh/), [poutine](https://github.com/boostsecurityio/poutine), [actionlint](https://github.com/rhysd/actionlint), the [ARGUS](https://www.usenix.org/conference/usenixsecurity23/presentation/muralee) research) — and a [2026 comparative study](https://arxiv.org/html/2601.14455v2) of nine of them found *no single scanner covers all weakness categories*. Portcullis's angle, in full honesty against that landscape ([detailed comparison](docs/benchmarks/comparison.md)):
 
 | | The usual approach | Portcullis |
 |---|---|---|
@@ -60,7 +63,7 @@ The key demonstration in that sample: **the identical injection pattern is CRITI
 
 ## Proven on real-world pipelines
 
-Portcullis was run against **66 real pipeline files from 10 well-known OSS projects** (flask, fastapi, requests, actions/runner, gitlab-runner, jenkinsci/pipeline-examples, …) — full write-up in [docs/EVALUATION.md](docs/EVALUATION.md):
+Portcullis was run against **66 real pipeline files from 10 well-known OSS projects** (flask, fastapi, requests, actions/runner, gitlab-runner, jenkinsci/pipeline-examples, …) — full write-up in [docs/benchmarks/evaluation.md](docs/benchmarks/evaluation.md):
 
 - **Zero crashes** in ~1.4s; malformed files degraded to LOW findings; **0 secret-value leaks** across all four output formats.
 - **Sensible ranking**: well-maintained repos scored 95–100, problematic ones scored low with actionable findings.
@@ -143,7 +146,7 @@ pyproject.toml  requirements.txt  mkdocs.yml
 
 ## Guarantees & limitations
 
-**Guarantees** (see [THREAT_MODEL.md](docs/THREAT_MODEL.md)): never executes pipeline content · no network at scan time · malformed input degrades to a LOW finding, never a crash · detected secrets redacted in every format · byte-deterministic output · SARIF validated against the official 2.1.0 schema.
+**Guarantees** (see [THREAT_MODEL.md](docs/threat-model/overview.md)): never executes pipeline content · no network at scan time · malformed input degrades to a LOW finding, never a crash · detected secrets redacted in every format · byte-deterministic output · SARIF validated against the official 2.1.0 schema.
 
 **Limitations** (read before trusting a clean scan): static reachability is approximate — confidence marks that honestly · reusable workflows are followed shallowly · Jenkins/Groovy parsing is best-effort, capped at MEDIUM confidence · high-entropy secret detection has false positives (LOW confidence) · `.gitignore` support is a pragmatic subset · **a clean scan is evidence, not proof**.
 
@@ -151,9 +154,22 @@ pyproject.toml  requirements.txt  mkdocs.yml
 
 The repo ships deliberately vulnerable fixtures: genuinely misconfigured (real injection sinks, real pwn-request triggers) with harmless `echo` payloads, `example.com` URLs, and fake-marked secret strings. An automated guard ([`tests/test_inertness.py`](tests/test_inertness.py)) enforces this on every run.
 
+## Standards mapping
+
+Portcullis maps directly onto the [OWASP Top 10 CI/CD Security Risks](docs/methodology/owasp-mapping.md) — it provides detection coverage for 8 of the 10 risks (SEC-2 through SEC-9), acts as the enforcement gate for SEC-1, and honestly does not cover SEC-10 (runtime logging).
+
 ## Contributing · Docs
 
-[CONTRIBUTING.md](CONTRIBUTING.md) — add a platform (a parser) or a rule (one function) · [docs/COMPARISON.md](docs/COMPARISON.md) — landscape & prior art · [docs/EVALUATION.md](docs/EVALUATION.md) — real-world results · [docs/VISION.md](docs/VISION.md) — non-goals & roadmap · [CHANGELOG.md](CHANGELOG.md) · [docs/content/](docs/content/) — blog posts & launch kit · original build spec under [docs/spec/](docs/spec/).
+[CONTRIBUTING.md](CONTRIBUTING.md) — add a platform (a parser) or a rule (one function) · [docs/benchmarks/comparison.md](docs/benchmarks/comparison.md) — landscape & prior art · [docs/benchmarks/evaluation.md](docs/benchmarks/evaluation.md) — real-world results · [docs/research-notes/roadmap.md](docs/research-notes/roadmap.md) — non-goals & roadmap · [RELEASING.md](RELEASING.md) — release + DOI runbook · [CHANGELOG.md](CHANGELOG.md) · [docs/content/](docs/content/) — blog posts & launch kit.
+
+## Citing Portcullis
+
+This project ships a [`CITATION.cff`](CITATION.cff). Once a release is archived on Zenodo (see [RELEASING.md](RELEASING.md)) it will have a DOI; until then, cite the repository:
+
+```
+Portcullis contributors. Portcullis: a static security analyzer for CI/CD
+pipeline definitions. https://github.com/mk12002/Portcullis
+```
 
 ## License
 

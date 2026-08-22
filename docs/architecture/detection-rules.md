@@ -87,4 +87,4 @@ their co-occurrence: an R1 `pwn-request` becomes CRITICAL when R2 or R5 also fir
 on the same job (the exfiltration kill chain), and two distinct substantive
 findings on one job corroborate up a priority level — but only reach the
 merge-blocking `P0` when the job is attacker-reachable. See
-[Architecture](architecture.md).
+[Architecture](overview.md).

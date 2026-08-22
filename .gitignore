@@ -18,3 +18,12 @@ _site_tmp/
 
 # Local engineering handbook / personal learning notes — not a project deliverable
 portcullis_breakdown/
+
+# Research paper draft — kept local until submitted (not a repo deliverable)
+paper/
+# LaTeX build artifacts
+*.aux
+*.log
+*.out
+*.synctex.gz
+*.pdf

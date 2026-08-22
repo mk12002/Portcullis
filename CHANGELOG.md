@@ -68,7 +68,7 @@ Initial release.
 - R0 parse errors surface as LOW findings; malformed input never crashes a scan.
 
 (Bolded checks were added after a landscape review against zizmor, poutine,
-actionlint, and the ARGUS paper — see docs/COMPARISON.md.)
+actionlint, and the ARGUS paper — see docs/benchmarks/comparison.md.)
 
 ### Interface
 - `portcullis scan` with `--format json|html|sarif|md|all`, `--out`,
@@ -78,7 +78,7 @@ actionlint, and the ARGUS paper — see docs/COMPARISON.md.)
   (trailing or line-above; `//` for Jenkinsfiles), reported in every output.
 - Deterministic output in all four formats (timestamp excepted).
 
-### Calibration (from a real-world evaluation — see docs/EVALUATION.md)
+### Calibration (from a real-world evaluation — see docs/benchmarks/evaluation.md)
 Running against 66 pipeline files from 10 well-known OSS projects (flask,
 fastapi, requests, actions/runner, gitlab-runner, jenkinsci/pipeline-examples,
 …) surfaced two calibration bugs, both fixed with regression tests:

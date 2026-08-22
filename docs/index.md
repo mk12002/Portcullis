@@ -34,8 +34,8 @@ See [Installation](installation.md), the [CLI Reference](cli.md), and runnable [
 | R5 | Secret exposure — echoed, argv-passed, untrusted-reachable, or hardcoded |
 | R6 | Step integrity — `curl \| bash`, unverified downloads, insecure commands |
 
-Full catalog with false-positive notes: [Detection Rules](rules.md).
+Full catalog with false-positive notes: [Detection Rules](architecture/detection-rules.md).
 
 ## Proven on real pipelines
 
-Run against **66 real pipeline files from 10 well-known OSS projects** — zero crashes, sensible ranking, validated head-to-head against zizmor. See [Real-world Evaluation](EVALUATION.md) and [Benchmarks](benchmarks.md).
+Run against **66 real pipeline files from 10 well-known OSS projects** — zero crashes, sensible ranking, validated head-to-head against zizmor. See [Real-world Evaluation](benchmarks/evaluation.md) and [Benchmarks](benchmarks/performance.md).

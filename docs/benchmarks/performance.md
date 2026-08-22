@@ -60,7 +60,7 @@ On the real-world set it agreed directionally with a mature competitor (zizmor)
 on which repos were healthy vs. problematic, while producing a prioritized,
 lower-volume result (e.g. 81 findings / 0 P0 where a blanket linter reported 230 /
 66 "high" on the same repo). Two calibration bugs found on real data were fixed
-with regression tests. Full detail: [Real-world Evaluation](EVALUATION.md).
+with regression tests. Full detail: [Real-world Evaluation](evaluation.md).
 
 ## Supported formats
 

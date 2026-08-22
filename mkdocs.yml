@@ -47,16 +47,24 @@ exclude_docs: |
 
 nav:
   - Home: index.md
-  - Installation: installation.md
-  - CLI Reference: cli.md
-  - Python API: api.md
-  - Examples: examples.md
-  - Architecture: architecture.md
-  - Detection Rules: rules.md
-  - Benchmarks: benchmarks.md
-  - Real-world Evaluation: EVALUATION.md
-  - Comparison: COMPARISON.md
-  - Threat Model: THREAT_MODEL.md
+  - Getting started:
+      - Installation: installation.md
+      - CLI Reference: cli.md
+      - Python API: api.md
+      - Examples: examples.md
+  - Architecture:
+      - Overview: architecture/overview.md
+      - Detection Rules: architecture/detection-rules.md
+  - Threat model:
+      - Overview: threat-model/overview.md
+  - Methodology:
+      - OWASP CI/CD Mapping: methodology/owasp-mapping.md
+  - Benchmarks:
+      - Performance: benchmarks/performance.md
+      - Real-world Evaluation: benchmarks/evaluation.md
+      - Comparison: benchmarks/comparison.md
+  - Research notes:
+      - Roadmap: research-notes/roadmap.md
   # CONTRIBUTING.md and CHANGELOG.md live at the repo root (GitHub convention),
   # outside docs_dir, so the site links to them on GitHub.
   - Contributing: https://github.com/mk12002/Portcullis/blob/main/CONTRIBUTING.md

@@ -1,7 +1,7 @@
 # Security Policy
 
 Portcullis is a defensive security tool that parses untrusted pipeline files. We
-take the security of the tool itself seriously — see [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md)
+take the security of the tool itself seriously — see [`docs/threat-model/overview.md`](docs/threat-model/overview.md)
 for the tool's own threat model (it never executes pipeline content, performs no
 network access at scan time, redacts detected secrets, and is hardened against
 YAML alias bombs, oversized files, symlink traversal, and report XSS).

@@ -77,7 +77,7 @@ Stated plainly, per the no-overclaiming rule:
   runner-label validation); Portcullis is not a linter and skips all of that.
 - **Checkov/KICS** bring compliance-framework mappings (CIS, PCI-DSS).
 
-These gaps are tracked in [VISION.md](VISION.md)'s roadmap where they fit
+These gaps are tracked in [VISION.md](../research-notes/roadmap.md)'s roadmap where they fit
 Portcullis's offline-first thesis (deep reusable-workflow following, opt-in
 online mode for known-compromised versions).
 
