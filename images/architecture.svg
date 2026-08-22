@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="440" viewBox="0 0 920 440" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8ba3bd"/>
+    </marker>
+  </defs>
+  <rect width="920" height="440" rx="12" fill="#12151a"/>
+  <text x="30" y="42" fill="#e6e9ed" font-size="20" font-weight="700">Portcullis architecture</text>
+  <text x="30" y="64" fill="#9aa4b2" font-size="12">three parsers, one normalized model, rules written once</text>
+
+  <!-- platform inputs -->
+  <g font-size="13" fill="#e6e9ed">
+    <rect x="30" y="95" width="180" height="52" rx="8" fill="#1b2027" stroke="#2b323c"/>
+    <text x="120" y="117" text-anchor="middle" font-weight="600">GitHub Actions</text>
+    <text x="120" y="135" text-anchor="middle" fill="#9aa4b2" font-size="11">.github/workflows/*.yml</text>
+
+    <rect x="30" y="160" width="180" height="52" rx="8" fill="#1b2027" stroke="#2b323c"/>
+    <text x="120" y="182" text-anchor="middle" font-weight="600">GitLab CI</text>
+    <text x="120" y="200" text-anchor="middle" fill="#9aa4b2" font-size="11">.gitlab-ci.yml</text>
+
+    <rect x="30" y="225" width="180" height="52" rx="8" fill="#1b2027" stroke="#2b323c"/>
+    <text x="120" y="247" text-anchor="middle" font-weight="600">Jenkins</text>
+    <text x="120" y="265" text-anchor="middle" fill="#9aa4b2" font-size="11">Jenkinsfile (best-effort)</text>
+  </g>
+
+  <!-- normalized model -->
+  <rect x="285" y="128" width="200" height="120" rx="10" fill="#16324a" stroke="#4f8cc9"/>
+  <text x="385" y="156" text-anchor="middle" fill="#cfe3f5" font-size="14" font-weight="700">Normalized Pipeline</text>
+  <text x="385" y="178" text-anchor="middle" fill="#9fc0dd" font-size="11">triggers · permissions · jobs</text>
+  <text x="385" y="195" text-anchor="middle" fill="#9fc0dd" font-size="11">steps (run / uses / env) · file:line</text>
+  <text x="385" y="217" text-anchor="middle" fill="#e8b448" font-size="11" font-weight="600">reachable_from_untrusted</text>
+  <text x="385" y="233" text-anchor="middle" fill="#9fc0dd" font-size="10">computed at parse time</text>
+
+  <!-- rules -->
+  <rect x="555" y="86" width="180" height="204" rx="10" fill="#1b2027" stroke="#2b323c"/>
+  <text x="645" y="110" text-anchor="middle" fill="#e6e9ed" font-size="13" font-weight="700">Rules · written once</text>
+  <g font-size="11" fill="#c8d1dc">
+    <text x="570" y="132">R1 dangerous triggers</text>
+    <text x="570" y="150">R2 expression injection</text>
+    <text x="570" y="168">R3 SHA / digest pinning</text>
+    <text x="570" y="186">R4 token permissions</text>
+    <text x="570" y="204">R5 secret exposure</text>
+    <text x="570" y="222">R6 step integrity</text>
+  </g>
+  <text x="645" y="250" text-anchor="middle" fill="#9aa4b2" font-size="10">+ taint: untrusted source → sink</text>
+  <text x="645" y="266" text-anchor="middle" fill="#9aa4b2" font-size="10">+ inline suppressions</text>
+
+  <!-- risk -->
+  <rect x="555" y="315" width="180" height="92" rx="10" fill="#3a2430" stroke="#e5484d"/>
+  <text x="645" y="340" text-anchor="middle" fill="#f3c6c8" font-size="13" font-weight="700">Risk model</text>
+  <text x="645" y="360" text-anchor="middle" fill="#e0aeb2" font-size="10.5">untrusted context ⇒ +1 severity</text>
+  <text x="645" y="376" text-anchor="middle" fill="#e0aeb2" font-size="10.5">P0–P3 · corroboration · score 0–100</text>
+
+  <!-- outputs -->
+  <g font-size="12" fill="#e6e9ed">
+    <rect x="790" y="100" width="100" height="40" rx="8" fill="#1e3527" stroke="#46a758"/>
+    <text x="840" y="125" text-anchor="middle" font-weight="600">JSON</text>
+    <rect x="790" y="152" width="100" height="40" rx="8" fill="#1e3527" stroke="#46a758"/>
+    <text x="840" y="177" text-anchor="middle" font-weight="600">HTML</text>
+    <rect x="790" y="204" width="100" height="40" rx="8" fill="#1e3527" stroke="#46a758"/>
+    <text x="840" y="229" text-anchor="middle" font-weight="600">SARIF 2.1.0</text>
+    <rect x="790" y="256" width="100" height="40" rx="8" fill="#1e3527" stroke="#46a758"/>
+    <text x="840" y="281" text-anchor="middle" font-weight="600">Markdown</text>
+    <rect x="790" y="326" width="100" height="52" rx="8" fill="#3a2f19" stroke="#e8883a"/>
+    <text x="840" y="348" text-anchor="middle" font-weight="600">--fail-on</text>
+    <text x="840" y="366" text-anchor="middle" fill="#d9b98a" font-size="10.5">CI merge gate</text>
+  </g>
+
+  <!-- arrows -->
+  <g stroke="#8ba3bd" stroke-width="1.6" fill="none" marker-end="url(#arr)">
+    <path d="M 210 121 C 250 121, 250 155, 283 165"/>
+    <path d="M 210 186 L 283 187"/>
+    <path d="M 210 251 C 250 251, 250 218, 283 208"/>
+    <path d="M 485 188 L 553 188"/>
+    <path d="M 645 290 L 645 313"/>
+    <path d="M 735 340 C 765 330, 765 130, 788 122"/>
+    <path d="M 735 350 C 765 345, 765 180, 788 173"/>
+    <path d="M 735 360 C 765 355, 765 230, 788 225"/>
+    <path d="M 735 370 C 765 365, 765 282, 788 277"/>
+    <path d="M 735 380 L 788 358"/>
+  </g>
+
+  <text x="30" y="415" fill="#6f7d8f" font-size="10.5">static · offline · never executes pipeline code · deterministic output</text>
+</svg>
