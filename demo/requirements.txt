@@ -1,4 +1,4 @@
 # Hugging Face Space runtime deps for the Portcullis demo.
 # Portcullis itself brings only ruamel.yaml; gradio powers the web UI.
 portcullis-scanner>=0.1.0
-gradio>=4.0
+gradio>=6.29.1
